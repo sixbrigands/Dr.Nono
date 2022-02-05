@@ -28,6 +28,9 @@ def get_name(author):
 def bold(string):
     return "**" + string + "**"
 
+def spoiler(string):
+    return "||" + string + "||"
+
 def nono_prefix(offender):
     nono_prefixes = [
         "Be it known that the criminal," + offender + " has committed the following offenses:",
@@ -62,8 +65,11 @@ async def list(ctx, offender=None):
                     nono_dict[nono_word] = count + message_list.count(nono_word)
     for nono_word, count in nono_dict.items():
         if count > 0:
-            nono_string += bold(nono_word) + ": " + str(count) +"\n"  
-
+            nono_string += ("{left_aligned:<15}{right_aligned:>15}" + "\n").format(
+                left_aligned=spoiler((bold(nono_word) + ": ")),
+                right_aligned=str(count)
+            )  
+        print(nono_string)
     with open('private/nono.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
@@ -91,7 +97,7 @@ async def play(ctx, url):
 # Conduct a poll between two things
 # TODO ask for choices and time limit
 @bot.command()
-async def poll():
+async def poll(ctx):
     #TODO pipe in real value from database
     option1 = 'jackboots'
     option2 = 'sandles'
