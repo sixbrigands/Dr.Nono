@@ -40,7 +40,7 @@ def nono_prefix(offender):
         "My my, " + offender + "such language...",
         offender + "! You're due for a donation to the swear jar",
         "This is a Christrian Mincraft server, " + offender,
-        offender! + " For shame.",
+        offender + "! For shame.",
         "Hmm, " + offender + "... why am I not surprised?"
     ]
     return random.choice(nono_prefixes) + "\n"
@@ -51,7 +51,7 @@ def nono_prefix(offender):
 async def list(ctx, offender=None):
     if offender == None:
         offender = ctx.author
-    nono_string = nono_prefix(bold(get_name(offender))) + ", "
+    nono_string = nono_prefix(bold(get_name(offender)))
     print('listing nono words!')
     for text_channel in ctx.guild.text_channels:
         async for message in text_channel.history(limit=1000):
@@ -149,7 +149,7 @@ def is_insult(message_string):
             return True
     return False
 
-THIS MESSES UP COMMANDS!
+#THIS MESSES UP COMMANDS!
 #https://discordpy.readthedocs.io/en/stable/api.html#discord.Message
 @bot.event #talk to bot
 async def on_message(message): #called when bot has recieves a message
@@ -166,6 +166,8 @@ async def on_message(message): #called when bot has recieves a message
         if is_insult(message_string):
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
           
+    await bot.process_commands(message)
+
 
 with open("private/secret.json", "r") as file:
     TOKEN = json.load(file)['TOKEN']
