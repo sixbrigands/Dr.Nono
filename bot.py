@@ -28,12 +28,6 @@ def get_name(author):
 def bold(string):
     return "**" + string + "**"
 
-nono_dict = OrderedDict()
-with open('bad_words.txt') as f:
-    nono_list = f.readlines()
-    for bad_word in nono_list:
-        nono_dict[bad_word.strip()] = 0
-
 def nono_prefix(offender):
     nono_prefixes = [
         "Be it known that the criminal," + offender + " has committed the following offenses:",
@@ -49,6 +43,12 @@ def nono_prefix(offender):
 #TODO Add second argument 'offender', default to author
 @bot.command()
 async def list(ctx, offender=None):
+    nono_dict = OrderedDict()
+    with open('bad_words.txt') as f:
+        nono_list = f.readlines()
+        for bad_word in nono_list:
+            nono_dict[bad_word.strip()] = 0
+            
     if offender == None:
         offender = ctx.author
     nono_string = nono_prefix(bold(get_name(offender)))
