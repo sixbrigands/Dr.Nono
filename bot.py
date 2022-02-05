@@ -37,7 +37,7 @@ def nono_prefix(offender):
         offender + "! For shame.",
         "Hmm, " + offender + "... why am I not surprised?"
     ]
-    return "\n\n" + random.choice(nono_prefixes) + "\n"
+    return " \n \n" + random.choice(nono_prefixes) + " \n"
 
 # Provide a list of all nono words said
 #TODO Add second argument 'offender', default to author
