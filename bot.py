@@ -65,10 +65,11 @@ async def list(ctx, offender=None):
                     nono_dict[nono_word] = count + message_list.count(nono_word)
     for nono_word, count in nono_dict.items():
         if count > 0:
-            nono_string += ("{left_aligned:<15}{right_aligned:>15}" + "\n").format(
-                left_aligned=spoiler((bold(nono_word) + ": ")),
-                right_aligned=str(count)
-            )  
+            hidden_word = spoiler((bold(nono_word) + ": "))
+            count_string = str(count) + "\n"
+            combo = hidden_word + (' '*(15-len(nono_word))) + count_string
+            nono_string += combo
+
         print(nono_string)
     with open('private/nono.gif', 'rb') as f:
         nono_gif = discord.File(f)
