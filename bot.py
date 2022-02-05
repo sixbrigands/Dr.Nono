@@ -33,7 +33,7 @@ def nono_prefix(offender):
         "Be it known that the criminal," + offender + " has committed the following offenses:",
         "My my, " + offender + ", such language...",
         offender + "! You're due for a donation to the swear jar",
-        "This is a Christrian Mincraft server, " + offender,
+        "This is a Christrian Minecraft server, " + offender,
         offender + "! For shame.",
         "Hmm, " + offender + "... why am I not surprised?"
     ]
