@@ -37,7 +37,7 @@ with open('bad_words.txt') as f:
 def nono_prefix(offender):
     nono_prefixes = [
         "Be it known that the criminal," + offender + " has committed the following offenses:",
-        "My my, " + offender + "such language...",
+        "My my, " + offender + ", such language...",
         offender + "! You're due for a donation to the swear jar",
         "This is a Christrian Mincraft server, " + offender,
         offender + "! For shame.",
