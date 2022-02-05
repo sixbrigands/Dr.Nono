@@ -25,7 +25,6 @@ with open('bad_words.txt') as f:
     for bad_word in nono_list:
         nono_dict[bad_word.strip()] = 0
 
-print(nono_dict)
 
 # nono_dict = OrderedDict()
 # with open('bad_words_test.txt') as f:
@@ -45,7 +44,7 @@ async def list(ctx):
                     nono_dict[nono_word] = count + message_list.count(nono_word)
     for nono_word, count in nono_dict.items():
         if count > 0:
-            print(nono_word + ": " + str(count))
+            await ctx.channel.send(nono_word + ": " + str(count))
 
 # A command for playing youtube audio through voice channel
 #https://discordpy.readthedocs.io/en/stable/api.html#discord.Member
@@ -157,7 +156,7 @@ def is_insult(message_string):
 #             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
           
 
-with open("secret.json", "r") as file:
+with open("private/secret.json", "r") as file:
     TOKEN = json.load(file)['TOKEN']
 
 
