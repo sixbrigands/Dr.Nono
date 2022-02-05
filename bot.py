@@ -37,18 +37,19 @@ def nono_prefix(offender):
         offender + "! For shame.",
         "Hmm, " + offender + "... why am I not surprised?"
     ]
-    return random.choice(nono_prefixes) + "\n"
+    return "\n\n" + random.choice(nono_prefixes) + "\n"
 
 # Provide a list of all nono words said
 #TODO Add second argument 'offender', default to author
 @bot.command()
 async def list(ctx, offender=None):
+
     nono_dict = OrderedDict()
     with open('bad_words.txt') as f:
         nono_list = f.readlines()
         for bad_word in nono_list:
             nono_dict[bad_word.strip()] = 0
-            
+
     if offender == None:
         offender = ctx.author
     nono_string = nono_prefix(bold(get_name(offender)))
@@ -61,7 +62,11 @@ async def list(ctx, offender=None):
                     nono_dict[nono_word] = count + message_list.count(nono_word)
     for nono_word, count in nono_dict.items():
         if count > 0:
-            nono_string += bold(nono_word) + ": " + str(count) +"\n"   
+            nono_string += bold(nono_word) + ": " + str(count) +"\n"  
+
+    with open('private/nono.gif', 'rb') as f:
+        nono_gif = discord.File(f)
+        await ctx.channel.send(file=nono_gif) 
     await ctx.channel.send(nono_string)
 
 # A command for playing youtube audio through voice channel
