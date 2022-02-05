@@ -3,6 +3,7 @@ import time
 import asyncio
 import json
 import re
+import random
 from discord.utils import get
 from discord.ext import commands
 from collections import OrderedDict
@@ -15,9 +16,17 @@ bot = commands.Bot(command_prefix='~')
 
 
 
-#This is the only way I could find to get the voice_client object
-#Other than getting it upon initial connection as in play(), kinda stupid
+#get author's real name, or Discord handle otherwise
+def get_name(author):
+    if ("(" in author.display_name): #check if nickname has real name, e.g. Username (Name)
+        open_paren = author.display_name.index('(') + 1
+        close_paren = author.display_name.index(')')
+        return author.display_name[open_paren:close_paren]
+    else:
+        return str(author)[:-5]
 
+def bold(string):
+    return "**" + string + "**"
 
 nono_dict = OrderedDict()
 with open('bad_words.txt') as f:
@@ -25,16 +34,24 @@ with open('bad_words.txt') as f:
     for bad_word in nono_list:
         nono_dict[bad_word.strip()] = 0
 
-
-# nono_dict = OrderedDict()
-# with open('bad_words_test.txt') as f:
-#     nono_list = f.readlines()
-#     for bad_word in nono_list:
-#         nono_dict[bad_word] = 0
+def nono_prefix(offender):
+    nono_prefixes = [
+        "Be it known that the criminal," + offender + " has committed the following offenses:",
+        "My my, " + offender + "such language...",
+        offender + "! You're due for a donation to the swear jar",
+        "This is a Christrian Mincraft server, " + offender,
+        offender! + " For shame.",
+        "Hmm, " + offender + "... why am I not surprised?"
+    ]
+    return random.choice(nono_prefixes) + "\n"
 
 # Provide a list of all nono words said
+#TODO Add second argument 'offender', default to author
 @bot.command()
-async def list(ctx):
+async def list(ctx, offender=None):
+    if offender == None:
+        offender = ctx.author
+    nono_string = nono_prefix(bold(get_name(offender))) + ", "
     print('listing nono words!')
     for text_channel in ctx.guild.text_channels:
         async for message in text_channel.history(limit=1000):
@@ -44,7 +61,8 @@ async def list(ctx):
                     nono_dict[nono_word] = count + message_list.count(nono_word)
     for nono_word, count in nono_dict.items():
         if count > 0:
-            await ctx.channel.send(nono_word + ": " + str(count))
+            nono_string += bold(nono_word) + ": " + str(count) +"\n"   
+    await ctx.channel.send(nono_string)
 
 # A command for playing youtube audio through voice channel
 #https://discordpy.readthedocs.io/en/stable/api.html#discord.Member
@@ -102,14 +120,7 @@ async def poll():
 async def nono(ctx, user):
     return
 
-#get author's real name, or Discord handle otherwise
-def get_name(author):
-    if ("(" in author.display_name): #check if nickname has real name, e.g. Themancallahan (Dylan)
-        open_paren = author.display_name.index('(') + 1
-        close_paren = author.display_name.index(')')
-        return author.display_name[open_paren:close_paren]
-    else:
-        return str(author)[:-5]
+
 
 @bot.event  #registers an event
 async def on_ready(): #on ready called when bot has finish logging in
@@ -138,22 +149,22 @@ def is_insult(message_string):
             return True
     return False
 
-#THIS MESSES UP COMMANDS!
-# #https://discordpy.readthedocs.io/en/stable/api.html#discord.Message
-# @bot.event #talk to bot
-# async def on_message(message): #called when bot has recieves a message
-#     message_string = message.content.lower()
-#     print(message_string)
-#     author = get_name(message.author)
+THIS MESSES UP COMMANDS!
+#https://discordpy.readthedocs.io/en/stable/api.html#discord.Message
+@bot.event #talk to bot
+async def on_message(message): #called when bot has recieves a message
+    message_string = message.content.lower()
+    print(message_string)
+    author = get_name(message.author)
 
-#     #<@!807971461226692649> == @Dylan-Bot when typed 807972428855771167 == @Dylan-Bot when copied
-#     if '807971461226692649' in message_string or '807972428855771167' in message_string: 
-#         #greetings
-#         if is_greeting(message_string):
-#                 await message.channel.send("Hello, " + author + "!")
-#         #insults
-#         if is_insult(message_string):
-#             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
+    #<@!807971461226692649> == @Dylan-Bot when typed 807972428855771167 == @Dylan-Bot when copied
+    if '807971461226692649' in message_string or '807972428855771167' in message_string: 
+        #greetings
+        if is_greeting(message_string):
+                await message.channel.send("Hello, " + author + "!")
+        #insults
+        if is_insult(message_string):
+            await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
           
 
 with open("private/secret.json", "r") as file:
