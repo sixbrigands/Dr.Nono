@@ -7,6 +7,8 @@ import random
 from discord.utils import get
 from discord.ext import commands
 from collections import OrderedDict
+from matplotlib import table
+from table2ascii import table2ascii as t2a, PresetStyle
 
 
 #client = discord.Client() #create a client instance
@@ -31,6 +33,9 @@ def bold(string):
 def spoiler(string):
     return "||" + string + "||"
 
+def code_block(string):
+    return "```" + string + "```"
+
 def nono_prefix(offender):
     nono_prefixes = [
         "Be it known that the criminal," + offender + " has committed the following offenses:",
@@ -42,7 +47,7 @@ def nono_prefix(offender):
     ]
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
-# Provide a list of all nono words said
+# Provide a list of all nono words said and fun picture
 #TODO Add second argument 'offender', default to author
 @bot.command()
 async def list(ctx, offender=None):
@@ -55,7 +60,9 @@ async def list(ctx, offender=None):
 
     if offender == None:
         offender = ctx.author
-    nono_string = nono_prefix(bold(get_name(offender)))
+    nono_table = ''
+    table_prefix = nono_prefix(bold(get_name(offender)))
+    table_body_list = []
     print('listing nono words!')
     for text_channel in ctx.guild.text_channels:
         async for message in text_channel.history(limit=1000):
@@ -65,15 +72,20 @@ async def list(ctx, offender=None):
                     nono_dict[nono_word] = count + message_list.count(nono_word)
     for nono_word, count in nono_dict.items():
         if count > 0:
-            hidden_word = spoiler((bold(nono_word) + ": "))
-            count_string = str(count) + "\n"
-            combo = hidden_word + ('.'*(15-len(nono_word))) + count_string
-            nono_string += combo
+            hidden_word = nono_word
+            table_body_list.append([hidden_word, count])
 
-        print(nono_string)
+    # Send picture and nono_word table to channel
     with open('private/nono.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
+    nono_table = t2a(
+                header=["NoNo_Word", "Utterances"],
+                body=table_body_list
+            ) 
+    #nono_string = table_prefix + nono_table
+    nono_string = table_prefix + code_block(nono_table)
+    print(nono_string)
     await ctx.channel.send(nono_string)
 
 # A command for playing youtube audio through voice channel

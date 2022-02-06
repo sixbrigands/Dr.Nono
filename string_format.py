@@ -1,8 +1,8 @@
 from table2ascii import table2ascii as t2a, PresetStyle
 
-left_aligned = "Left Align"
-center = "Centered"
-right_aligned = "Right Align"
+# left_aligned = "Left Align"
+# center = "Centered"
+# right_aligned = "Right Align"
 
 # nono_string = "Hello!\n"
 
@@ -18,4 +18,5 @@ output = t2a(
     body=[[1, 'Team A', 2, 4, 6], [2, 'Team B', 3, 3, 6], [3, 'Team C', 4, 2, 6]],
     first_col_heading=True
 )
+
 print(output)
