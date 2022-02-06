@@ -37,7 +37,7 @@ def code_block(string):
     return "```" + string + "```"
 
 def get_user_id_from_mention(mention_string):
-    return mention_string[3:-1]
+    return int(mention_string[3:-1])
 
 def nono_prefix(offender):
     nono_prefixes = [
@@ -67,7 +67,11 @@ async def list(ctx, offender=None):
     # If arg provided, get the user from the user_id
     else:
         try:
-            offender = ctx.guild.get_member(get_user_id_from_mention(offender))
+            print("Getting member fom mention arg")
+            print(offender)
+            print(get_user_id_from_mention(offender))
+            offender = bot.get_user(get_user_id_from_mention(offender))
+            print(offender)
         except:
             print(offender)
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
