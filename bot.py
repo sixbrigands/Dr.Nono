@@ -82,11 +82,15 @@ async def list(ctx, offender=None):
     table_body_list = []
     print('listing nono words!')
     for text_channel in ctx.guild.text_channels:
-        async for message in text_channel.history(limit=1000):
-            if message.author == offender:
-                message_list = message.content.lower().split()
-                for nono_word, count in nono_dict.items():
-                    nono_dict[nono_word] = count + message_list.count(nono_word)
+        print(text_channel)
+        #print(text_channel.permissions_for(bot.get_user(bot.user.id)))
+        print(text_channel.members)
+        if bot.get_user(bot.user.id) in text_channel.members:
+            async for message in text_channel.history(limit=1000):
+                if message.author == offender:
+                    message_list = message.content.lower().split()
+                    for nono_word, count in nono_dict.items():
+                        nono_dict[nono_word] = count + message_list.count(nono_word)
     for nono_word, count in nono_dict.items():
         if count > 0:
             hidden_word = nono_word
