@@ -67,7 +67,7 @@ async def list(ctx, offender=None):
         if count > 0:
             hidden_word = spoiler((bold(nono_word) + ": "))
             count_string = str(count) + "\n"
-            combo = hidden_word + (' '*(15-len(nono_word))) + count_string
+            combo = hidden_word + ('.'*(15-len(nono_word))) + count_string
             nono_string += combo
 
         print(nono_string)
