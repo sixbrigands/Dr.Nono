@@ -211,6 +211,9 @@ ultimate_nono_dict = {
 # Respond to messages on text channels the bot can see
 @bot.event 
 async def on_message(message): #called when bot has recieves a message
+    # Don't respond to the bot itself
+    if message.author == bot.user:
+        return
     message_string = message.content.lower()
     author = get_name(message.author)
     message_word_list = message.content.split()
