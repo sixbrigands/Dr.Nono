@@ -197,8 +197,8 @@ def is_insult(message_string):
 
 ultimate_nono_alert = "🚨 ULTIMATE NONO ALERT 🚨\n"
 ultimate_nono_dict = {
-    'map': discord.Embed(title = ultimate_nono_alert + 'MAP:', description = "Short for " + bold("Minor Attracted Person") + ", MAP refers to a person who is sexually attracted to children but does not sexually molest them."),
-    'chad':  discord.Embed(title = ultimate_nono_alert + 'Chad:', description = (bold("Chad") + " is associated with the incel community and the website 4chan to refer stereotypical alpha males."))
+    'map': discord.Embed(title = ultimate_nono_alert, description = (bold("MAP") + ": Short for Minor Attracted Person, MAP refers to a person who is sexually attracted to children but does not sexually molest them.")),
+    'chad':  discord.Embed(title = ultimate_nono_alert, description =  (bold("Chad") + ": Associated with the incel community and the website 4chan to refer stereotypical alpha males."))
 }
 
 # Respond to messages on text channels the bot can see
@@ -219,8 +219,12 @@ async def on_message(message): #called when bot has recieves a message
 
     for ultimate_nono_word in ultimate_nono_dict.keys():
         if ultimate_nono_word in message_string.split():
+            with open('private/ultimate_nono_alert.gif', 'rb') as f:
+                nono_gif = discord.File(f)
+                await message.channel.send(file=nono_gif) 
             await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
           
+        
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
 
