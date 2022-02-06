@@ -84,9 +84,10 @@ async def list(ctx, offender=None):
                 body=table_body_list
             ) 
     #nono_string = table_prefix + nono_table
-    nono_string = table_prefix + code_block(nono_table)
+    nono_string = nono_table
     print(nono_string)
-    await ctx.channel.send(nono_string)
+    nono_string = discord.Embed(title = table_prefix, description = code_block(nono_table))
+    await ctx.channel.send(embed = nono_string)
 
 # A command for playing youtube audio through voice channel
 #https://discordpy.readthedocs.io/en/stable/api.html#discord.Member
