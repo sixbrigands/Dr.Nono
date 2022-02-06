@@ -174,7 +174,7 @@ async def on_ready(): #on ready called when bot has finish logging in
 
 #returns True if string contains listed greetings, else False
 def is_greeting(message_string):
-    greetings = {"hi", " hi!", "hello", " hey", " hey!", "good morning", "good day", "how's it going", "how are you", "what's up", "wassup", " sup", "sup,", "sup!", "good evening", "good afternoon", "to meet you", "how've you been", "nice to see you", "long time no see", "ahoy", "howdy"}
+    greetings = {"hi ", " hi", "hi," "hello", "hey ", " hey", "good morning", "good day", "how's it going", "how are you", "what's up", "wassup", " sup", "sup,", "sup " "good evening", "good afternoon", "to meet you", "how've you been", "nice to see you", "long time no see", "ahoy", "howdy", "how are you"}
     #short_greetings {}
     for greeting in greetings:
         if greeting in message_string:
@@ -195,15 +195,20 @@ def is_insult(message_string):
             return True
     return False
 
-#THIS MESSES UP COMMANDS!
-#https://discordpy.readthedocs.io/en/stable/api.html#discord.Message
-@bot.event #talk to bot
+ultimate_nono_alert = "🚨 ULTIMATE NONO ALERT 🚨\n"
+ultimate_nono_dict = {
+    'map': discord.Embed(title = ultimate_nono_alert + 'MAP:', description = "Short for " + bold("Minor Attracted Person") + ", MAP refers to a person who is sexually attracted to children but does not sexually molest them."),
+    'chad':  discord.Embed(title = ultimate_nono_alert + 'Chad:', description = (bold("Chad") + " is associated with the incel community and the website 4chan to refer stereotypical alpha males."))
+}
+
+# Respond to messages on text channels the bot can see
+@bot.event 
 async def on_message(message): #called when bot has recieves a message
     message_string = message.content.lower()
-    print(message_string)
     author = get_name(message.author)
 
-    #<@!807971461226692649> == @Dylan-Bot when typed 807972428855771167 == @Dylan-Bot when copied
+    # bot.user == the bot itself
+    # Respond to mentions of bot
     if str(bot.user.id) in message_string:
         #greetings
         if is_greeting(message_string):
@@ -211,7 +216,12 @@ async def on_message(message): #called when bot has recieves a message
         #insults
         if is_insult(message_string):
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
+
+    for ultimate_nono_word in ultimate_nono_dict.keys():
+        if ultimate_nono_word in message_string.split():
+            await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
           
+    # This allows commands to be used along with on_message events
     await bot.process_commands(message)
 
 
