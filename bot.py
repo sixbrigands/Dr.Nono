@@ -54,7 +54,10 @@ def nono_prefix(offender):
 #TODO Add second argument 'offender', default to author
 @bot.command()
 async def list(ctx, offender=None):
-
+    print("bot id:")
+    print(bot.user.id)
+    print("offender id")
+    print(offender)
     nono_dict = OrderedDict()
     with open('bad_words.txt') as f:
         nono_list = f.readlines()
@@ -64,6 +67,10 @@ async def list(ctx, offender=None):
     # Who's nono words am I listing? Withou an argument, default to whoever made the command
     if offender == None:
         offender = ctx.author
+    # Dr. Nono can't be the offender!
+    elif get_user_id_from_mention(offender) == bot.user.id:
+        await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
+        return
     # If arg provided, get the user from the user_id
     else:
         try:
