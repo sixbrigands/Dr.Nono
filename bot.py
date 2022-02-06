@@ -36,6 +36,9 @@ def spoiler(string):
 def code_block(string):
     return "```" + string + "```"
 
+def get_user_id_from_mention(mention_string):
+    return mention_string[3:-1]
+
 def nono_prefix(offender):
     nono_prefixes = [
         "Be it known that the criminal," + offender + " has committed the following offenses:",
@@ -58,15 +61,25 @@ async def list(ctx, offender=None):
         for bad_word in nono_list:
             nono_dict[bad_word.strip()] = 0
 
+    # Who's nono words am I listing? Withou an argument, default to whoever made the command
     if offender == None:
         offender = ctx.author
+    # If arg provided, get the user from the user_id
+    else:
+        try:
+            offender = ctx.guild.get_member(get_user_id_from_mention(offender))
+        except:
+            print(offender)
+            await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
+            return
+    
     nono_table = ''
     table_prefix = nono_prefix(bold(get_name(offender)))
     table_body_list = []
     print('listing nono words!')
     for text_channel in ctx.guild.text_channels:
         async for message in text_channel.history(limit=1000):
-            if message.author == ctx.author:
+            if message.author == offender:
                 message_list = message.content.lower().split()
                 for nono_word, count in nono_dict.items():
                     nono_dict[nono_word] = count + message_list.count(nono_word)
