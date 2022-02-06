@@ -213,6 +213,8 @@ ultimate_nono_dict = {
 async def on_message(message): #called when bot has recieves a message
     message_string = message.content.lower()
     author = get_name(message.author)
+    message_word_list = message.content.split()
+    message_word_list_lower = message_string.split()
 
     # bot.user == the bot itself
     # Respond to mentions of bot
@@ -225,10 +227,17 @@ async def on_message(message): #called when bot has recieves a message
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
 
     for ultimate_nono_word in ultimate_nono_dict.keys():
-        if ultimate_nono_word in message_string.split():
+        highlighted_message = "> "
+        if ultimate_nono_word in message_word_list_lower:
+            for word in message_word_list:
+                if word.lower() == ultimate_nono_word:
+                    highlighted_message += " " + bold(word)
+                else:
+                    highlighted_message += " " + word
             with open('private/ultimate_nono_alert.gif', 'rb') as f:
                 nono_gif = discord.File(f)
                 await message.channel.send(file=nono_gif) 
+            await message.channel.send(highlighted_message)
             await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
           
         
