@@ -85,7 +85,7 @@ async def list(ctx, offender=None):
         print(text_channel)
         #print(text_channel.permissions_for(bot.get_user(bot.user.id)))
         print(text_channel.members)
-        if bot.get_user(bot.user.id) in text_channel.members:
+        if bot.user in text_channel.members:
             async for message in text_channel.history(limit=1000):
                 if message.author == offender:
                     message_list = message.content.lower().split()
@@ -204,7 +204,7 @@ async def on_message(message): #called when bot has recieves a message
     author = get_name(message.author)
 
     #<@!807971461226692649> == @Dylan-Bot when typed 807972428855771167 == @Dylan-Bot when copied
-    if '807971461226692649' in message_string or '807972428855771167' in message_string: 
+    if str(bot.user.id) in message_string:
         #greetings
         if is_greeting(message_string):
                 await message.channel.send("Hello, " + author + "!")
