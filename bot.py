@@ -25,6 +25,7 @@ async def on_ready(): #on ready called when bot has finish logging in
 
 #get author's real name, or Discord handle otherwise
 def get_name(author):
+    print(author)
     if ("(" in author.display_name): #check if nickname has real name, e.g. Username (Name)
         open_paren = author.display_name.index('(') + 1
         close_paren = author.display_name.index(')')
@@ -43,7 +44,11 @@ def code_block(string):
 # Get member object from <@username> string
 def get_user_id_from_mention(mention_string):
     clean_string = ''.join(c for c in mention_string if c.isnumeric() or c == ' ')
-    return int(clean_string)
+    try:
+        user_id_int = int(clean_string)
+        return user_id_int
+    except:
+        return None 
 
 # What Dr. NoNo says before listing your NoNo words
 def nono_prefix(offender):
