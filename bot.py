@@ -15,12 +15,16 @@ handler = logging.FileHandler(filename='private/discord.log', encoding='utf-8', 
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+# A members intent is needed to get members objects from guilds
+intents = discord.Intents.default()
+intents.members = True
+
 # All commands must be prepended with '~'
-bot = commands.Bot(command_prefix='~')
+bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
 
 # What happens when bot connects to the server
 @bot.event  #registers an event
-async def on_ready(chunk_guilds_at_startup=True): #on ready called when bot has finish logging in
+async def on_ready(): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
 
 #get author's real name, or Discord handle otherwise
@@ -54,7 +58,7 @@ def get_user_id_from_mention(mention_string):
 # What Dr. NoNo says before listing your NoNo words
 def nono_prefix(offender):
     nono_prefixes = [
-        "Be it known that the criminal, " + offender + " has committed the following offenses:",
+        "Be it known that the criminal, " + offender + ", has committed the following offenses:",
         "My my, " + offender + ", such language...",
         offender + "! You're due for a donation to the swear jar",
         "This is a Christrian Minecraft server, " + offender,
@@ -67,13 +71,12 @@ def nono_prefix(offender):
 @bot.command()
 async def list(ctx, offender=None):
     bot_id = int(bot.user.id)
-    print(get_user_id_from_mention(offender))
     nono_dict = OrderedDict()
     with open('bad_words.txt') as f:
         nono_list = f.readlines()
         for bad_word in nono_list:
             nono_dict[bad_word.strip()] = 0
-
+    
     # Who's nono words am I listing? Without an argument, default to whoever made the command
     if offender == None:
         offender = ctx.author
