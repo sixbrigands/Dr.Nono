@@ -1,14 +1,10 @@
 import discord
-import time
-import asyncio
 import json
-import re
 import random
 from discord.utils import get
 from discord.ext import commands
 from collections import OrderedDict
-from matplotlib import table
-from table2ascii import table2ascii as t2a, PresetStyle
+from table2ascii import table2ascii as t2a
 import logging
 
 # Set up logging
