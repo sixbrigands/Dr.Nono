@@ -20,7 +20,7 @@ bot = commands.Bot(command_prefix='~')
 
 # What happens when bot connects to the server
 @bot.event  #registers an event
-async def on_ready(): #on ready called when bot has finish logging in
+async def on_ready(chunk_guilds_at_startup=True): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
 
 #get author's real name, or Discord handle otherwise
@@ -67,7 +67,6 @@ def nono_prefix(offender):
 @bot.command()
 async def list(ctx, offender=None):
     bot_id = int(bot.user.id)
-    print(bot_id)
     print(get_user_id_from_mention(offender))
     nono_dict = OrderedDict()
     with open('bad_words.txt') as f:
@@ -85,8 +84,10 @@ async def list(ctx, offender=None):
     # If arg provided, get the user from the user_id
     else:
         try:
-            offender = await bot.fetch_user(get_user_id_from_mention(offender))
-        except:
+            #offender = await bot.fetch_user(get_user_id_from_mention(offender)) #this returns a user object, with no nickname
+            offender = ctx.guild.get_member(get_user_id_from_mention(offender)) # This returns a member object with nickname
+        except Exception as e:
+            print(e)
             logger.debug("I can't find this offender:")
             logger.debug(offender)
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
@@ -98,7 +99,6 @@ async def list(ctx, offender=None):
     print('listing nono words!')
     for text_channel in ctx.guild.text_channels:
         print(text_channel)
-        print(text_channel.members)
         if bot.user in text_channel.members:
             async for message in text_channel.history(limit=1000):
                 if message.author == offender:
@@ -162,6 +162,8 @@ ultimate_nono_dict = {
 # Respond to messages on text channels the bot can see
 @bot.event 
 async def on_message(message): #called when bot has recieves a message
+
+    
     # Don't respond to the bot itself
     if message.author == bot.user:
         return
