@@ -15,7 +15,7 @@ import logging
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='private/discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -107,10 +107,17 @@ async def list(ctx, offender=None):
                     message_list = message.content.lower().split()
                     for nono_word, count in nono_dict.items():
                         nono_dict[nono_word] = count + message_list.count(nono_word)
+    no_nono_words_found = True
     for nono_word, count in nono_dict.items():
         if count > 0:
-            hidden_word = nono_word
-            table_body_list.append([hidden_word, count])
+            no_nono_words_found = False
+            table_body_list.append([nono_word, count])
+
+    # If user has said no NoNo words, bail out
+    if no_nono_words_found:
+        logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
+        await ctx.channel.send("I can't believe it. " + get_name(offender) +" has never said a NoNo word!")
+        return
 
     # Send picture and nono_word table to channel
     with open('private/nono.gif', 'rb') as f:
@@ -129,14 +136,11 @@ async def list(ctx, offender=None):
 # Is a user message a greeting?
 def is_greeting(message_string):
     greetings = {"hi ", " hi", "hi," "hello", "hey ", " hey", "good morning", "good day", "how's it going", "how are you", "what's up", "wassup", " sup", "sup,", "sup " "good evening", "good afternoon", "to meet you", "how've you been", "nice to see you", "long time no see", "ahoy", "howdy", "how are you"}
-    #short_greetings {}
     for greeting in greetings:
         if greeting in message_string:
             print(greeting)
             if "hi" in greeting and not message_string.endswith("hi") and message_string[message_string.find('hi') + 2].isalpha():
-                print(message_string[message_string.find('hi') + 2])
                 return False
-            print("Greeting detected")
             return True
     return False
 
@@ -145,7 +149,6 @@ def is_insult(message_string):
     insults = {"fuck", "shitty", "suck", "damn", "smelly", "hate", "stink", "loser"}
     for insult in insults:
         if insult in message_string:
-            print("Meanie Detected")
             return True
     return False
 
@@ -172,12 +175,17 @@ async def on_message(message): #called when bot has recieves a message
     if str(bot.user.id) in message_string:
         #greetings
         if is_greeting(message_string):
-                await message.channel.send("Hello, " + author + "!")
+            logger.info(author + "greeted me.")
+            logger.info(message.content)
+            await message.channel.send("Hello, " + author + "!")
         #insults
         if is_insult(message_string):
+            logger.info(author + "insulted me.")
+            logger.info(message.content)
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
-        
+        #help
         if 'help' in message_word_list_lower:
+            logger.info(author + "asked for help.")
             greeting_string = discord.Embed(title = "Greetings. I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
             + "\nTo see your own list, type ```~list```To someone else's, type: ```~list @username```")
             await message.channel.send(embed=greeting_string)
