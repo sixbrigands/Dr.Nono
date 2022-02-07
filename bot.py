@@ -22,6 +22,11 @@ logger.addHandler(handler)
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~')
 
+# What happens when bot connects to the server
+@bot.event  #registers an event
+async def on_ready(): #on ready called when bot has finish logging in
+    print(f'{bot.user.name} has connected to Discord!')
+
 #get author's real name, or Discord handle otherwise
 def get_name(author):
     if ("(" in author.display_name): #check if nickname has real name, e.g. Username (Name)
@@ -31,18 +36,19 @@ def get_name(author):
     else:
         return str(author)[:-5]
 
+# Helper methods for formatting
 def bold(string):
     return "**" + string + "**"
-
 def spoiler(string):
     return "||" + string + "||"
-
 def code_block(string):
     return "```" + string + "```"
 
+# Get member object from <@username> string
 def get_user_id_from_mention(mention_string):
     return int(mention_string[3:-1])
 
+# What Dr. NoNo says before listing your NoNo words
 def nono_prefix(offender):
     nono_prefixes = [
         "Be it known that the criminal," + offender + " has committed the following offenses:",
@@ -54,8 +60,7 @@ def nono_prefix(offender):
     ]
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
-# Provide a list of all nono words said and fun picture
-#TODO Add second argument 'offender', default to author
+# Provide a list of all nono words a user has said with a fun picture
 @bot.command()
 async def list(ctx, offender=None):
     print("bot id:")
@@ -121,16 +126,7 @@ async def list(ctx, offender=None):
     nono_string = discord.Embed(title = table_prefix, description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
 
-#List history of all bad words someone has said
-@bot.command()
-async def nono(ctx, user):
-    return
-
-@bot.event  #registers an event
-async def on_ready(): #on ready called when bot has finish logging in
-    print(f'{bot.user.name} has connected to Discord!')
-
-#returns True if string contains listed greetings, else False
+# Is a user message a greeting?
 def is_greeting(message_string):
     greetings = {"hi ", " hi", "hi," "hello", "hey ", " hey", "good morning", "good day", "how's it going", "how are you", "what's up", "wassup", " sup", "sup,", "sup " "good evening", "good afternoon", "to meet you", "how've you been", "nice to see you", "long time no see", "ahoy", "howdy", "how are you"}
     #short_greetings {}
@@ -144,7 +140,7 @@ def is_greeting(message_string):
             return True
     return False
 
-#returns True if string contains listed negative words, else False
+# Is a user message an insult?
 def is_insult(message_string):
     insults = {"fuck", "shitty", "suck", "damn", "smelly", "hate", "stink", "loser"}
     for insult in insults:
@@ -153,6 +149,7 @@ def is_insult(message_string):
             return True
     return False
 
+# What are the unforgivable NoNo words that must be called out when said?
 ultimate_nono_alert = "🚨 ULTIMATE NONO ALERT 🚨\n"
 ultimate_nono_dict = {
     'map': discord.Embed(title = ultimate_nono_alert, description = (bold("MAP") + ": Short for Minor Attracted Person, MAP refers to a person who is sexually attracted to children but does not sexually molest them.")),
@@ -165,12 +162,12 @@ async def on_message(message): #called when bot has recieves a message
     # Don't respond to the bot itself
     if message.author == bot.user:
         return
+
     message_string = message.content.lower()
     author = get_name(message.author)
     message_word_list = message.content.split()
     message_word_list_lower = message_string.split()
 
-    # bot.user == the bot itself
     # Respond to mentions of bot
     if str(bot.user.id) in message_string:
         #greetings
@@ -179,7 +176,8 @@ async def on_message(message): #called when bot has recieves a message
         #insults
         if is_insult(message_string):
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
-
+    
+    # Call out those especially dirty NoNo words on sight
     for ultimate_nono_word in ultimate_nono_dict.keys():
         highlighted_message = "> "
         if ultimate_nono_word in message_word_list_lower:
@@ -194,11 +192,12 @@ async def on_message(message): #called when bot has recieves a message
             await message.channel.send(highlighted_message)
             await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
           
-        
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
 
+# Load the secret token that allows configuation of the bot
 with open("private/secret.json", "r") as file:
     TOKEN = json.load(file)['TOKEN']
 
+# Start the bot
 bot.run(TOKEN)
