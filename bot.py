@@ -135,7 +135,7 @@ async def list(ctx, offender=None):
 
 # Is a user message a greeting?
 def is_greeting(message_string):
-    greetings = {"hi ", " hi", "hi," "hello", "hey ", " hey", "good morning", "good day", "how's it going", "how are you", "what's up", "wassup", " sup", "sup,", "sup " "good evening", "good afternoon", "to meet you", "how've you been", "nice to see you", "long time no see", "ahoy", "howdy", "how are you"}
+    greetings = {"hi ", " hi", "hi,", "hello", "hey ", " hey", "good morning", "good day", "how's it going", "how are you", "what's up", "wassup", " sup", "sup,", "sup " "good evening", "good afternoon", "to meet you", "how've you been", "nice to see you", "long time no see", "ahoy", "howdy", "how are you"}
     for greeting in greetings:
         if greeting in message_string:
             print(greeting)
@@ -166,6 +166,7 @@ async def on_message(message): #called when bot has recieves a message
     if message.author == bot.user:
         return
 
+    print(message.content)
     message_string = message.content.lower()
     author = get_name(message.author)
     message_word_list = message.content.split()
