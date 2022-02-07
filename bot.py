@@ -47,7 +47,7 @@ def get_user_id_from_mention(mention_string):
 # What Dr. NoNo says before listing your NoNo words
 def nono_prefix(offender):
     nono_prefixes = [
-        "Be it known that the criminal," + offender + " has committed the following offenses:",
+        "Be it known that the criminal, " + offender + " has committed the following offenses:",
         "My my, " + offender + ", such language...",
         offender + "! You're due for a donation to the swear jar",
         "This is a Christrian Minecraft server, " + offender,
@@ -92,12 +92,13 @@ async def list(ctx, offender=None):
     print('listing nono words!')
     for text_channel in ctx.guild.text_channels:
         print(text_channel)
-        #print(text_channel.permissions_for(bot.get_user(bot.user.id)))
         print(text_channel.members)
         if bot.user in text_channel.members:
             async for message in text_channel.history(limit=1000):
+                #strip out punctutation
+                message_string = ''.join(c for c in message if c.isalpha() or c == ' ')
                 if message.author == offender:
-                    message_list = message.content.lower().split()
+                    message_list = message_string.content.lower().split()
                     for nono_word, count in nono_dict.items():
                         nono_dict[nono_word] = count + message_list.count(nono_word)
     no_nono_words_found = True
@@ -128,7 +129,7 @@ async def list(ctx, offender=None):
 
 # Is a user message a greeting?
 def is_greeting(message_string):
-    greetings = {"hi ", " hi", "hi,", "hello", "hey ", " hey", "good morning", "good day", "how's it going", "how are you", "what's up", "wassup", " sup", "sup,", "sup " "good evening", "good afternoon", "to meet you", "how've you been", "nice to see you", "long time no see", "ahoy", "howdy", "how are you"}
+    greetings = {"hi ", " hi", "hello", "hey ", " hey", "good morning", "good day", "hows it going", "how are you", "whats up", "wassup", " sup", "sup,", "sup " "good evening", "good afternoon", "to meet you", "howve you been", "nice to see you", "long time no see", "ahoy", "howdy", "how are you"}
     for greeting in greetings:
         if greeting in message_string:
             print(greeting)
@@ -159,26 +160,25 @@ async def on_message(message): #called when bot has recieves a message
     if message.author == bot.user:
         return
 
-    print(message.content)
-    message_string = message.content.lower()
-    author = get_name(message.author)
+    message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ').lower()
     message_word_list = message.content.split()
-    message_word_list_lower = message_string.split()
+    author = get_name(message.author)
+    
 
     # Respond to mentions of bot
-    if str(bot.user.id) in message_string:
+    if str(bot.user.id) in message_string_clean:
         #greetings
-        if is_greeting(message_string):
+        if is_greeting(message_string_clean):
             logger.info(author + "greeted me.")
             logger.info(message.content)
             await message.channel.send("Hello, " + author + "!")
         #insults
-        if is_insult(message_string):
+        if is_insult(message_string_clean):
             logger.info(author + "insulted me.")
             logger.info(message.content)
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
         #help
-        if 'help' in message_word_list_lower:
+        if 'help' in message_string_clean:
             logger.info(author + "asked for help.")
             greeting_string = discord.Embed(title = "Greetings. I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
             + "\nTo see your own list, type ```~list```To someone else's, type: ```~list @username```")
@@ -187,9 +187,10 @@ async def on_message(message): #called when bot has recieves a message
     # Call out those especially dirty NoNo words on sight
     for ultimate_nono_word in ultimate_nono_dict.keys():
         highlighted_message = "> "
-        if ultimate_nono_word in message_word_list_lower:
+        if ultimate_nono_word in message_string_clean.split() or (ultimate_nono_word + 's') in message_string_clean.split():
             for word in message_word_list:
-                if word.lower() == ultimate_nono_word:
+                clean_word = ''.join(c for c in word if c.isalpha() or c == ' ').lower()
+                if clean_word == ultimate_nono_word or clean_word == (ultimate_nono_word + 's'):
                     highlighted_message += " " + bold(word)
                 else:
                     highlighted_message += " " + word

@@ -12,11 +12,17 @@ from table2ascii import table2ascii as t2a, PresetStyle
 
 
 
-# In your command:
-output = t2a(
-    header=["Rank", "Team", "Kills", "Position Pts", "Total"],
-    body=[[1, 'Team A', 2, 4, 6], [2, 'Team B', 3, 3, 6], [3, 'Team C', 4, 2, 6]],
-    first_col_heading=True
-)
+# # In your command:
+# output = t2a(
+#     header=["Rank", "Team", "Kills", "Position Pts", "Total"],
+#     body=[[1, 'Team A', 2, 4, 6], [2, 'Team B', 3, 3, 6], [3, 'Team C', 4, 2, 6]],
+#     first_col_heading=True
+# )
+
+# print(output)
+
+input = "A normal sentence!"
+
+output = ''.join(c for c in input if c.isalpha() or c == ' ')
 
 print(output)
