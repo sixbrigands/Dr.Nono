@@ -69,7 +69,7 @@ async def list(ctx, offender=None):
         for bad_word in nono_list:
             nono_dict[bad_word.strip()] = 0
 
-    # Who's nono words am I listing? Withou an argument, default to whoever made the command
+    # Who's nono words am I listing? Without an argument, default to whoever made the command
     if offender == None:
         offender = ctx.author
     # Dr. Nono can't be the offender!
@@ -79,13 +79,10 @@ async def list(ctx, offender=None):
     # If arg provided, get the user from the user_id
     else:
         try:
-            print("Getting member fom mention arg")
-            print(offender)
-            print(get_user_id_from_mention(offender))
-            offender = bot.get_user(get_user_id_from_mention(offender))
-            print(offender)
+            offender = await bot.fetch_user(get_user_id_from_mention(offender))
         except:
-            print(offender)
+            logger.debug("I can't find this offender:")
+            logger.debug(offender)
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
             return
     
