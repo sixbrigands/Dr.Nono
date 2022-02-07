@@ -176,6 +176,11 @@ async def on_message(message): #called when bot has recieves a message
         #insults
         if is_insult(message_string):
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
+        
+        if 'help' in message_word_list_lower:
+            greeting_string = discord.Embed(title = "Greetings. I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
+            + "\nTo see your own list, type ```~list```To someone else's, type: ```~list @username```")
+            await message.channel.send(embed=greeting_string)
     
     # Call out those especially dirty NoNo words on sight
     for ultimate_nono_word in ultimate_nono_dict.keys():
