@@ -95,10 +95,10 @@ async def list(ctx, offender=None):
         print(text_channel.members)
         if bot.user in text_channel.members:
             async for message in text_channel.history(limit=1000):
-                #strip out punctutation
-                message_string = ''.join(c for c in message if c.isalpha() or c == ' ')
                 if message.author == offender:
-                    message_list = message_string.content.lower().split()
+                    #strip out punctutation
+                    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+                    message_list = message_string.lower().split()
                     for nono_word, count in nono_dict.items():
                         nono_dict[nono_word] = count + message_list.count(nono_word)
     no_nono_words_found = True
@@ -161,12 +161,13 @@ async def on_message(message): #called when bot has recieves a message
         return
 
     message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ').lower()
+    print(message_string_clean)
     message_word_list = message.content.split()
     author = get_name(message.author)
     
 
     # Respond to mentions of bot
-    if str(bot.user.id) in message_string_clean:
+    if str(bot.user.id) in message.content:
         #greetings
         if is_greeting(message_string_clean):
             logger.info(author + "greeted me.")
