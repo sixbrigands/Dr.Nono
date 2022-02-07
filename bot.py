@@ -42,7 +42,8 @@ def code_block(string):
 
 # Get member object from <@username> string
 def get_user_id_from_mention(mention_string):
-    return int(mention_string[3:-1])
+    clean_string = ''.join(c for c in mention_string if c.isnumeric() or c == ' ')
+    return int(clean_string)
 
 # What Dr. NoNo says before listing your NoNo words
 def nono_prefix(offender):
@@ -59,10 +60,9 @@ def nono_prefix(offender):
 # Provide a list of all nono words a user has said with a fun picture
 @bot.command()
 async def list(ctx, offender=None):
-    print("bot id:")
-    print(bot.user.id)
-    print("offender id")
-    print(offender)
+    bot_id = int(bot.user.id)
+    print(bot_id)
+    print(get_user_id_from_mention(offender))
     nono_dict = OrderedDict()
     with open('bad_words.txt') as f:
         nono_list = f.readlines()
@@ -73,7 +73,7 @@ async def list(ctx, offender=None):
     if offender == None:
         offender = ctx.author
     # Dr. Nono can't be the offender!
-    elif get_user_id_from_mention(offender) == bot.user.id:
+    elif bot_id == get_user_id_from_mention(offender):
         await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
         return
     # If arg provided, get the user from the user_id
