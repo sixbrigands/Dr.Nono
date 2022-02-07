@@ -9,14 +9,18 @@ from discord.ext import commands
 from collections import OrderedDict
 from matplotlib import table
 from table2ascii import table2ascii as t2a, PresetStyle
+import logging
 
+# Set up logging
 
-#client = discord.Client() #create a client instance
-#https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html
-#https://discordpy.readthedocs.io/en/stable/ext/commands/api.html
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
+# All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~')
-
-
 
 #get author's real name, or Discord handle otherwise
 def get_name(author):
@@ -117,63 +121,10 @@ async def list(ctx, offender=None):
     nono_string = discord.Embed(title = table_prefix, description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
 
-# A command for playing youtube audio through voice channel
-#https://discordpy.readthedocs.io/en/stable/api.html#discord.Member
-# expects message to be ~play <youtube url>
-@bot.command()
-async def play(ctx, url):
-    print(ctx, end=' ' + url)
-    #Author is type dicord.Member https://discordpy.readthedocs.io/en/stable/api.html#discord.Member
-    author = ctx.author
-    voice_channel = author.voice.channel
-    
-
-    # client.user is the bot itself, it is of type "ClientUser" https://discordpy.readthedocs.io/en/stable/api.html#discord.ClientUser
-    #print(client.user.voice_clients)
-    
-    
-    #Connect to voice channel if not already
-    # voice_client is this object: https://discordpy.readthedocs.io/en/stable/api.html#discord.VoiceClient
-    
-
-# Conduct a poll between two things
-# TODO ask for choices and time limit
-@bot.command()
-async def poll(ctx):
-    #TODO pipe in real value from database
-    option1 = 'jackboots'
-    option2 = 'sandles'
-
-    actual_option1 = 'Hitler'
-    actual_option2 = 'Ghandi'
-
-    message = await ctx.channel.send('React with: \n' + '🌕' + ' for '  + option1 + ', \n' + '🌑' + ' for ' + option2)
-    channel = message.channel  
-    await message.add_reaction('🌕')
-    await message.add_reaction('🌑')
-    await asyncio.sleep(2)
-    print("Getting count")
-    updated_message = await channel.fetch_message(message.id)
-    option1_reactions = get(updated_message.reactions, emoji = '🌕')
-    option2_reactions = get(updated_message.reactions, emoji = '🌑')
-    
-    print(option1_reactions.count)
-    print(option2_reactions.count)
-    
-    message2 = ''
-    if (option1_reactions.count > option2_reactions.count):
-        message2 = await message.channel.send('The majority has decided that '  + actual_option1 + ' is better than ' + actual_option2 + '.\nI love democracy!')
-    if (option2_reactions.count > option1_reactions.count):
-        message2 = await message.channel.send('The majority has decided that '  + actual_option2 + ' is better than ' + actual_option1 + '.\nI love democracy!')
-    if (option2_reactions.count == option1_reactions.count):
-        message2 = await message.channel.send('We have a tie! Clearly '  + actual_option2 + ' is exactly as good as ' + actual_option1 + '.\nI love democracy!')
-
 #List history of all bad words someone has said
 @bot.command()
 async def nono(ctx, user):
     return
-
-
 
 @bot.event  #registers an event
 async def on_ready(): #on ready called when bot has finish logging in
@@ -247,14 +198,7 @@ async def on_message(message): #called when bot has recieves a message
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
 
-
 with open("private/secret.json", "r") as file:
     TOKEN = json.load(file)['TOKEN']
 
-
 bot.run(TOKEN)
-
-
-
-#TODO: logging https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
-#TODO: copy this quene format https://github.com/Carberra/discord.py-music-tutorial/blob/master/bot/cogs/music.py
