@@ -25,7 +25,8 @@ async def on_ready(): #on ready called when bot has finish logging in
 
 #get author's real name, or Discord handle otherwise
 def get_name(author):
-    print(author)
+    print(author.display_name)
+    print("(" in author.display_name)
     if ("(" in author.display_name): #check if nickname has real name, e.g. Username (Name)
         open_paren = author.display_name.index('(') + 1
         close_paren = author.display_name.index(')')
