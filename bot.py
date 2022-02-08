@@ -204,7 +204,7 @@ async def on_message(message): #called when bot has recieves a message
         if 'help' in message_string_clean:
             logger.info(author + "asked for help.")
             greeting_string = discord.Embed(title = "Greetings. I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
-            + "\nTo see your own list, type: ```~list```To someone else's, type: ```~list @username```")
+            + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```")
             await message.channel.send(embed=greeting_string)
     
     # Call out those especially dirty NoNo words on sight
