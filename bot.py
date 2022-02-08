@@ -106,7 +106,7 @@ async def list(ctx, offender=None):
         logger.debug(offender)
         await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
         return
-        
+
     nono_table = ''
     table_prefix = nono_prefix(bold(get_name(offender)))
     table_body_list = []
@@ -204,7 +204,7 @@ async def on_message(message): #called when bot has recieves a message
         if 'help' in message_string_clean:
             logger.info(author + "asked for help.")
             greeting_string = discord.Embed(title = "Greetings. I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
-            + "\nTo see your own list, type ```~list```To someone else's, type: ```~list @username```")
+            + "\nTo see your own list, type: ```~list```To someone else's, type: ```~list @username```")
             await message.channel.send(embed=greeting_string)
     
     # Call out those especially dirty NoNo words on sight
