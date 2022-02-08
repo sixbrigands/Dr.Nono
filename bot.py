@@ -220,7 +220,7 @@ async def on_message(message): #called when bot has recieves a message
             with open('private/ultimate_nono_alert.gif', 'rb') as f:
                 nono_gif = discord.File(f)
                 await message.channel.send(file=nono_gif) 
-            await message.channel.send(highlighted_message)
+            await message.channel.send(author + ' said:\n' + highlighted_message)
             await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
           
     # This allows commands to be used along with on_message events
