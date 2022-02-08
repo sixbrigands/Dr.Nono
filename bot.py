@@ -130,7 +130,7 @@ async def list(ctx, offender=None):
     # If user has said no NoNo words, bail out
     if no_nono_words_found:
         logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
-        await ctx.channel.send("I can't believe it. " + get_name(offender) +" has never said a NoNo word!")
+        await ctx.channel.send("I can't believe it. " + bold(get_name(offender)) +" has never said a NoNo word!")
         return
 
     # Send picture and nono_word table to channel
