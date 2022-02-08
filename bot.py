@@ -1,3 +1,4 @@
+import string
 import discord
 import json
 import random
@@ -29,14 +30,17 @@ async def on_ready(): #on ready called when bot has finish logging in
 
 #get author's real name, or Discord handle otherwise
 def get_name(author):
-    print(author.display_name)
-    print("(" in author.display_name)
-    if ("(" in author.display_name): #check if nickname has real name, e.g. Username (Name)
-        open_paren = author.display_name.index('(') + 1
-        close_paren = author.display_name.index(')')
-        return author.display_name[open_paren:close_paren]
-    else:
-        return str(author)[:-5]
+    try:
+        if ("(" in author.display_name): #check if nickname has real name, e.g. Username (Name)
+            open_paren = author.display_name.index('(') + 1
+            close_paren = author.display_name.index(')')
+            return author.display_name[open_paren:close_paren]
+        else:
+            return str(author)[:-5]
+    except Exception as e:
+        print("get_name failed")
+        print(e)
+        return None
 
 # Helper methods for formatting
 def bold(string):
@@ -48,6 +52,8 @@ def code_block(string):
 
 # Get member object from <@username> string
 def get_user_id_from_mention(mention_string):
+    if not mention_string.startswith('<'):
+        return None
     clean_string = ''.join(c for c in mention_string if c.isnumeric() or c == ' ')
     try:
         user_id_int = int(clean_string)
@@ -95,7 +101,12 @@ async def list(ctx, offender=None):
             logger.debug(offender)
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
             return
-    
+    if offender == None:
+        logger.debug("I can't find this offender:")
+        logger.debug(offender)
+        await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
+        return
+        
     nono_table = ''
     table_prefix = nono_prefix(bold(get_name(offender)))
     table_body_list = []
