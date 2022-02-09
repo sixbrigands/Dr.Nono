@@ -36,7 +36,21 @@ with open('bad_words.txt') as f:
 
 # Add a member to the dictionary!
 def insert_member_into_dicts(guild: discord.Guild, member: discord.Member):
-
+    print('Inserting ' + get_name(member) + ' into dicts!') 
+    for text_channel in guild.text_channels:
+        print(text_channel)
+        if bot.user in text_channel.members: # Check if bot has access to this text channel
+            async for message in text_channel.history():
+                    #strip out punctutation
+                    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+                    message_list = message_string.lower().split()
+                    for nono_word, count in nono_dict.items():
+                        nono_dict[nono_word] = count + message_list.count(nono_word)
+    no_nono_words_found = True
+    for nono_word, count in nono_dict.items():
+        if count > 0:
+            no_nono_words_found = False
+            table_body_list.append([nono_word, count])
 #TODO: make a func to build tables to be printed (both for memebers and server?)
 def build_table():
     pass
@@ -140,22 +154,7 @@ async def list(ctx, offender=None):
     nono_table = ''
     table_prefix = nono_prefix(bold(get_name(offender)))
     table_body_list = []
-    print('listing nono words!')
-    for text_channel in ctx.guild.text_channels:
-        print(text_channel)
-        if bot.user in text_channel.members:
-            async for message in text_channel.history(limit=1000):
-                if message.author == offender:
-                    #strip out punctutation
-                    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
-                    message_list = message_string.lower().split()
-                    for nono_word, count in nono_dict.items():
-                        nono_dict[nono_word] = count + message_list.count(nono_word)
-    no_nono_words_found = True
-    for nono_word, count in nono_dict.items():
-        if count > 0:
-            no_nono_words_found = False
-            table_body_list.append([nono_word, count])
+    
 
     # If user has said no NoNo words, bail out
     if no_nono_words_found:
@@ -270,3 +269,4 @@ bot.run(TOKEN)
 #https://stackoverflow.com/questions/63863871/discord-py-how-to-go-through-channel-history-and-search-for-a-specific-message
 
 #TODO put starts or number 1's around someone's top nono word
+#TODO make a nono word object to hold the word, count, link, ratio, etc
