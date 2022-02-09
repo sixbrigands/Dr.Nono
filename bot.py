@@ -4,15 +4,15 @@ import json
 import random
 from discord.utils import get
 from discord.ext import commands
-from collections import OrderedDict
 from table2ascii import table2ascii as t2a
+from collections import OrderedDict
 import logging
 
 # Set up logging
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='private/discord.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='private/nono_v2.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -23,10 +23,37 @@ intents.members = True
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
 
+# Guilds{Members{NoNo_Words{}}}
+nono_dict_by_member = {}
+# Guilds{NoNo_Words{}}
+nono_dict_by_server = {}
+# Build list of bad words for late dict insertion
+nono_list = []
+with open('bad_words.txt') as f:
+        rough_list = f.readlines()
+        for bad_word in rough_list:
+            nono_list.append(bad_word.strip())
+
+# Add a member to the dictionary!
+def insert_member_into_dicts(guild: discord.Guild, member: discord.Member):
+
+#TODO: make a func to build tables to be printed (both for memebers and server?)
+def build_table():
+    pass
+
 # What happens when bot connects to the server
 @bot.event  #registers an event
 async def on_ready(): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
+    
+nono_dict_by_server = {}
+    #TODO: Write a function to list nono words for member, do all members here and save to dict of a dict
+
+@bot.event
+async def on_member_join(member):
+    #TODO Call list function here when a memebr joins
+    pass
+
 
 #get author's real name, or Discord handle otherwise
 def get_name(author):
@@ -74,6 +101,9 @@ def nono_prefix(offender):
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
 # Provide a list of all nono words a user has said with a fun picture
+# TODO: When provided with @everyone, print the server stats
+# TODO: look at listing swear count ratio against average
+# TODO: Look at compairing two members
 @bot.command()
 async def list(ctx, offender=None):
     bot_id = int(bot.user.id)
@@ -232,3 +262,11 @@ with open("private/secret.json", "r") as file:
 
 # Start the bot
 bot.run(TOKEN)
+
+
+#TODO Consider adding 'jump links' somewhere to give an example of a nono_word
+#https://stackoverflow.com/questions/64527464/clickable-link-inside-message-discord-py
+#These can be embedded in messages.. but only within embeds
+#https://stackoverflow.com/questions/63863871/discord-py-how-to-go-through-channel-history-and-search-for-a-specific-message
+
+#TODO put starts or number 1's around someone's top nono word
