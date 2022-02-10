@@ -7,12 +7,13 @@ from discord.ext import commands
 from table2ascii import table2ascii as t2a
 from collections import OrderedDict
 import logging
+from nono_word import NoNo_Word
 
 # Set up logging
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='private/nono_v2.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='private/nono.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -23,29 +24,60 @@ intents.members = True
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
 
-# Guilds{Members{NoNo_Words{}}}
+# Members{NoNo_Words{}}
 nono_dict_by_member = {}
 # Guilds{NoNo_Words{}}
 nono_dict_by_server = {}
 # Build list of bad words for late dict insertion
 nono_list = []
-with open('bad_words.txt') as f:
+with open('private/bad_words.txt') as f:
         rough_list = f.readlines()
         for bad_word in rough_list:
             nono_list.append(bad_word.strip())
 
-# Add a member to the dictionary!
-def insert_member_into_dicts(guild: discord.Guild, member: discord.Member):
+# Add a member to the dictionary and tally their nono words
+def load_member(guild: discord.Guild, member: discord.Member):
     print('Inserting ' + get_name(member) + ' into dicts!') 
+    logger.info('Inserting ' + get_name(member) + ' into dicts!')
+    nono_dict_by_member[member.id] = {}
+    nono_dict_by_server[guild.id]  = {}
     for text_channel in guild.text_channels:
         print(text_channel)
-        if bot.user in text_channel.members: # Check if bot has access to this text channel
-            async for message in text_channel.history():
-                    #strip out punctutation
-                    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
-                    message_list = message_string.lower().split()
-                    for nono_word, count in nono_dict.items():
-                        nono_dict[nono_word] = count + message_list.count(nono_word)
+        if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
+            for message in text_channel.history():
+                #strip out punctutation
+                message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+                message_list = message_string.lower().split()
+                # Count nono words in messages, add to server and member counts
+                for nono_word in nono_list:
+                    if nono_word in nono_dict_by_member[member.id]:
+                        nono_dict_by_member[member.id][nono_word] += message_list.count(nono_word)
+                        nono_dict_by_server[guild.id][nono_word]  += message_list.count(nono_word)
+                    else:
+                        nono_dict_by_member[member.id][nono_word] = message_list.count(nono_word)
+                        nono_dict_by_server[guild.id][nono_word]  = message_list.count(nono_word)
+
+def load_server(guild: discord.Guild):
+    print('Inserting ' + get_name(member) + ' into dicts!') 
+    logger.info('Inserting ' + get_name(member) + ' into dicts!')
+    nono_dict_by_member[member.id] = {}
+    nono_dict_by_server[guild.id]  = {}
+    for text_channel in guild.text_channels:
+        print(text_channel)
+        if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
+            for message in text_channel.history():
+                #strip out punctutation
+                message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+                message_list = message_string.lower().split()
+                # Count nono words in messages, add to server and member counts
+                for nono_word in nono_list:
+                    if nono_word in nono_dict_by_member[member.id]:
+                        nono_dict_by_member[member.id][nono_word] += message_list.count(nono_word)
+                        nono_dict_by_server[guild.id][nono_word]  += message_list.count(nono_word)
+                    else:
+                        nono_dict_by_member[member.id][nono_word] = message_list.count(nono_word)
+                        nono_dict_by_server[guild.id][nono_word]  = message_list.count(nono_word)        
+                        
     no_nono_words_found = True
     for nono_word, count in nono_dict.items():
         if count > 0:
@@ -110,7 +142,8 @@ def nono_prefix(offender):
         offender + "! You're due for a donation to the swear jar",
         "This is a Christrian Minecraft server, " + offender,
         offender + "! For shame.",
-        "Hmm, " + offender + "... why am I not surprised?"
+        "Hmm, " + offender + "... why am I not surprised?",
+        "I've got my eye on you, " + offender + "...",
     ]
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
@@ -122,7 +155,7 @@ def nono_prefix(offender):
 async def list(ctx, offender=None):
     bot_id = int(bot.user.id)
     nono_dict = OrderedDict()
-    with open('bad_words.txt') as f:
+    with open('private/bad_words.txt') as f:
         nono_list = f.readlines()
         for bad_word in nono_list:
             nono_dict[bad_word.strip()] = 0
