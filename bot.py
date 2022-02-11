@@ -40,7 +40,6 @@ def load_member(guild: discord.Guild, member: discord.Member):
     print('Inserting ' + get_name(member) + ' into dicts!') 
     logger.info('Inserting ' + get_name(member) + ' into dicts!')
     nono_dict_by_member[member.id] = {}
-    nono_dict_by_server[guild.id]  = {}
     for text_channel in guild.text_channels:
         print(text_channel)
         if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
@@ -49,19 +48,20 @@ def load_member(guild: discord.Guild, member: discord.Member):
                 message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
                 message_list = message_string.lower().split()
                 # Count nono words in messages, add to server and member counts
-                for nono_word in nono_list:
-                    if nono_word in nono_dict_by_member[member.id]:
-                        nono_dict_by_member[member.id][nono_word] += message_list.count(nono_word)
-                        nono_dict_by_server[guild.id][nono_word]  += message_list.count(nono_word)
+                for word in nono_list:
+                    if word in nono_dict_by_member[member.id]:
+                        nono_word = NoNo_Word(word)
+                        nono_dict_by_member[member.id][word].update(message_list, message_list, message.jump_url)
+                        nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
                     else:
-                        nono_dict_by_member[member.id][nono_word] = message_list.count(nono_word)
-                        nono_dict_by_server[guild.id][nono_word]  = message_list.count(nono_word)
+                        nono_dict_by_member[member.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+                        nono_dict_by_server[guild.id][word]  = NoNo_Word(message_list, message_list.count(word), message.jump_url)
 
+# Load all words and members currently on the server, add it to the guild dict
 def load_server(guild: discord.Guild):
     print('Inserting ' + get_name(member) + ' into dicts!') 
     logger.info('Inserting ' + get_name(member) + ' into dicts!')
     nono_dict_by_member[member.id] = {}
-    nono_dict_by_server[guild.id]  = {}
     for text_channel in guild.text_channels:
         print(text_channel)
         if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
@@ -70,13 +70,28 @@ def load_server(guild: discord.Guild):
                 message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
                 message_list = message_string.lower().split()
                 # Count nono words in messages, add to server and member counts
-                for nono_word in nono_list:
-                    if nono_word in nono_dict_by_member[member.id]:
-                        nono_dict_by_member[member.id][nono_word] += message_list.count(nono_word)
-                        nono_dict_by_server[guild.id][nono_word]  += message_list.count(nono_word)
+                for word in nono_list:
+                    if word in nono_dict_by_member[member.id]:
+                        nono_word = NoNo_Word(word)
+                        nono_dict_by_member[member.id][word].update(message_list, message_list, message.jump_url)
+                        nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
                     else:
-                        nono_dict_by_member[member.id][nono_word] = message_list.count(nono_word)
-                        nono_dict_by_server[guild.id][nono_word]  = message_list.count(nono_word)        
+                        nono_dict_by_member[member.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+                        nono_dict_by_server[guild.id][word]  = NoNo_Word(message_list, message_list.count(word), message.jump_url)       
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
                         
     no_nono_words_found = True
     for nono_word, count in nono_dict.items():
