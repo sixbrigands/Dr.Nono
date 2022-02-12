@@ -59,6 +59,18 @@ with open('private/bad_words.txt') as f:
 #                     else:
 #                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
 
+# Scan a single message and update dicts with nono_words:
+def load_message(message_list, author: discord.member):
+    for word in nono_list:
+        if word in nono_dict_by_member[author.id]:
+            nono_dict_by_member[author.id][word].update(message_list, message_list, message.jump_url)
+        else:
+            nono_dict_by_member[author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+        if word in nono_dict_by_server[author.guild.id]:
+            nono_dict_by_server[author.guild.id][word].update(message_list, message_list, message.jump_url)
+        else:   
+            nono_dict_by_server[author.guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+
 # Comb through channel messages after bot is added to it
 def load_channel(text_channel: discord.TextChannel):
     print('Inserting ' + text_channel.name + ' into dicts!') 
@@ -295,6 +307,8 @@ async def on_message(message): #called when bot has recieves a message
             await message.channel.send(author + ' said:\n' + highlighted_message)
             await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
 
+    # Add message nono_words to dicts
+    
     # Respond to mentions of bot
     if str(bot.user.id) in message.content:
         #help
@@ -313,10 +327,6 @@ async def on_message(message): #called when bot has recieves a message
             logger.info(author + "insulted me.")
             logger.info(message.content)
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
-
-        
-    
-
           
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
