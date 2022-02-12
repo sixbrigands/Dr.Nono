@@ -103,7 +103,7 @@ def load_server(guild: discord.Guild):
                     else:
                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
-#TODO: make a func to build tables to be printed (both for memebers and server?)
+#TODO: make a func to build tables to be printed (both for members and server?)
 def build_table():
     pass
 
@@ -115,7 +115,9 @@ async def on_ready(): #on ready called when bot has finish logging in
         load_server(server)
     
 @bot.event\
-async def on bot is added to server..
+async def on bot is added to server..(server):
+    load_server(server)
+
 
 @bot.event
 async dev on bot is added to new Channel
@@ -267,7 +269,6 @@ ultimate_nono_dict = {
 # Respond to messages on text channels the bot can see
 @bot.event 
 async def on_message(message): #called when bot has recieves a message
-
     
     # Don't respond to the bot itself
     if message.author == bot.user:
@@ -277,26 +278,6 @@ async def on_message(message): #called when bot has recieves a message
     print(message_string_clean)
     message_word_list = message.content.split()
     author = get_name(message.author)
-    
-
-    # Respond to mentions of bot
-    if str(bot.user.id) in message.content:
-        #greetings
-        if is_greeting(message_string_clean):
-            logger.info(author + "greeted me.")
-            logger.info(message.content)
-            await message.channel.send("Hello, " + author + "!")
-        #insults
-        if is_insult(message_string_clean):
-            logger.info(author + "insulted me.")
-            logger.info(message.content)
-            await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
-        #help
-        if 'help' in message_string_clean:
-            logger.info(author + "asked for help.")
-            greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
-            + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```")
-            await message.channel.send(embed=greeting_string)
     
     # Call out those especially dirty NoNo words on sight
     for ultimate_nono_word in ultimate_nono_dict.keys():
@@ -313,6 +294,29 @@ async def on_message(message): #called when bot has recieves a message
                 await message.channel.send(file=nono_gif) 
             await message.channel.send(author + ' said:\n' + highlighted_message)
             await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
+
+    # Respond to mentions of bot
+    if str(bot.user.id) in message.content:
+        #help
+        if 'help' in message_string_clean:
+            logger.info(author + "asked for help.")
+            greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
+            + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```")
+            await message.channel.send(embed=greeting_string)
+        #greetings
+        elif is_greeting(message_string_clean):
+            logger.info(author + "greeted me.")
+            logger.info(message.content)
+            await message.channel.send("Hello, " + author + "!")
+        #insults
+        elif is_insult(message_string_clean):
+            logger.info(author + "insulted me.")
+            logger.info(message.content)
+            await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
+
+        
+    
+
           
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
