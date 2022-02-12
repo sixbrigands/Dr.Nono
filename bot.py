@@ -41,7 +41,7 @@ def load_member(guild: discord.Guild, member: discord.Member):
     logger.info('Inserting ' + get_name(member) + ' into dicts!')
     nono_dict_by_member[member.id] = {}
     for text_channel in guild.text_channels:
-        print(text_channel)
+        print("scanning ", text_channel.name)
         if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
             for message in text_channel.history():
                 #strip out punctutation
@@ -50,34 +50,37 @@ def load_member(guild: discord.Guild, member: discord.Member):
                 # Count nono words in messages, add to server and member counts
                 for word in nono_list:
                     if word in nono_dict_by_member[member.id]:
-                        nono_word = NoNo_Word(word)
                         nono_dict_by_member[member.id][word].update(message_list, message_list, message.jump_url)
-                        nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
                     else:
                         nono_dict_by_member[member.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-                        nono_dict_by_server[guild.id][word]  = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+                    if word in nono_dict_by_server[guild.id]:
+                        nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
+                    else:
+                        nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+
 
 # Load all words and members currently on the server, add it to the guild dict
 def load_server(guild: discord.Guild):
-    print('Inserting ' + get_name(member) + ' into dicts!') 
-    logger.info('Inserting ' + get_name(member) + ' into dicts!')
-    nono_dict_by_member[member.id] = {}
+    print('Inserting all members on' + guild.name + ' into dicts!') 
+    logger.info('Inserting all members on' + guild.name + ' into dicts!') 
+    nono_dict_by_server[guild.id] = {}
     for text_channel in guild.text_channels:
-        print(text_channel)
-        if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
+        print("scanning ", text_channel.name)
+        if bot.user in text_channel.members: # Check that bot has access to this channel
             for message in text_channel.history():
                 #strip out punctutation
                 message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
                 message_list = message_string.lower().split()
                 # Count nono words in messages, add to server and member counts
                 for word in nono_list:
-                    if word in nono_dict_by_member[member.id]:
-                        nono_word = NoNo_Word(word)
-                        nono_dict_by_member[member.id][word].update(message_list, message_list, message.jump_url)
+                    if word in nono_dict_by_member[message.author.id]:
+                        nono_dict_by_member[message.author.id][word].update(message_list, message_list, message.jump_url)
+                    else:
+                        nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+                    if word in nono_dict_by_server[guild.id]:
                         nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
                     else:
-                        nono_dict_by_member[member.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-                        nono_dict_by_server[guild.id][word]  = NoNo_Word(message_list, message_list.count(word), message.jump_url)       
+                        nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
 
 
