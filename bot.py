@@ -327,6 +327,9 @@ async def on_message(message): #called when bot has recieves a message
             logger.info(author + "insulted me.")
             logger.info(message.content)
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
+
+    # Scan the message for nono words and add them to the dicts
+    load_message(message_word_list)
           
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
