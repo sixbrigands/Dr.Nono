@@ -4,6 +4,7 @@ import json
 import random
 from discord.utils import get
 from discord.ext import commands
+from paramiko import Channel
 from table2ascii import table2ascii as t2a
 from collections import OrderedDict
 import logging
@@ -35,28 +36,48 @@ with open('private/bad_words.txt') as f:
         for bad_word in rough_list:
             nono_list.append(bad_word.strip())
 
-# Add a member to the dictionary and tally their nono words
-def load_member(guild: discord.Guild, member: discord.Member):
-    print('Inserting ' + get_name(member) + ' into dicts!') 
-    logger.info('Inserting ' + get_name(member) + ' into dicts!')
-    nono_dict_by_member[member.id] = {}
-    for text_channel in guild.text_channels:
-        print("scanning ", text_channel.name)
-        if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
-            for message in text_channel.history():
-                #strip out punctutation
-                message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
-                message_list = message_string.lower().split()
-                # Count nono words in messages, add to server and member counts
-                for word in nono_list:
-                    if word in nono_dict_by_member[member.id]:
-                        nono_dict_by_member[member.id][word].update(message_list, message_list, message.jump_url)
-                    else:
-                        nono_dict_by_member[member.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-                    if word in nono_dict_by_server[guild.id]:
-                        nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
-                    else:
-                        nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+# # Add a member to the dictionary and tally their nono words
+# def load_member(guild: discord.Guild, member: discord.Member):
+#     print('Inserting ' + get_name(member) + ' into dicts!') 
+#     logger.info('Inserting ' + get_name(member) + ' into dicts!')
+#     nono_dict_by_member[member.id] = {}
+#     for text_channel in guild.text_channels:
+#         print("scanning ", text_channel.name)
+#         if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
+#             for message in text_channel.history():
+#                 #strip out punctutation
+#                 message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+#                 message_list = message_string.lower().split()
+#                 # Count nono words in messages, add to server and member counts
+#                 for word in nono_list:
+#                     if word in nono_dict_by_member[member.id]:
+#                         nono_dict_by_member[member.id][word].update(message_list, message_list, message.jump_url)
+#                     else:
+#                         nono_dict_by_member[member.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+#                     if word in nono_dict_by_server[guild.id]:
+#                         nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
+#                     else:
+#                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+
+# Comb through channel messages after bot is added to it
+def load_channel(text_channel: discord.TextChannel):
+    print('Inserting ' + text_channel.name + ' into dicts!') 
+    logger.info('Inserting ' + text_channel.name + ' into dicts!')
+    if bot.user in text_channel.members: # Check that bot has access to this channel
+        for message in text_channel.history():
+            #strip out punctutation
+            message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+            message_list = message_string.lower().split()
+            # Count nono words in messages, add to server and member counts
+            for word in nono_list:
+                if word in nono_dict_by_member[message.author.id]:
+                    nono_dict_by_member[message.author.id][word].update(message_list, message_list, message.jump_url)
+                else:
+                    nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+                if word in nono_dict_by_server[message.author.guild.id]:
+                    nono_dict_by_server[message.author.guild.id][word].update(message_list, message_list, message.jump_url)
+                else:
+                    nono_dict_by_server[message.author.guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
 
 # Load all words and members currently on the server, add it to the guild dict
@@ -82,25 +103,6 @@ def load_server(guild: discord.Guild):
                     else:
                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
-
-
-
-
-
-
-
-
-
-
-
-
- 
-                        
-    no_nono_words_found = True
-    for nono_word, count in nono_dict.items():
-        if count > 0:
-            no_nono_words_found = False
-            table_body_list.append([nono_word, count])
 #TODO: make a func to build tables to be printed (both for memebers and server?)
 def build_table():
     pass
@@ -109,14 +111,23 @@ def build_table():
 @bot.event  #registers an event
 async def on_ready(): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
+    for server in bot.guilds:
+        load_server(server)
+    
+@bot.event\
+async def on bot is added to server..
+
+@bot.event
+async dev on bot is added to new Channel
+    load_channel(text_channel)
     
 nono_dict_by_server = {}
     #TODO: Write a function to list nono words for member, do all members here and save to dict of a dict
 
+# When a user joins the server, add
 @bot.event
 async def on_member_join(member):
-    #TODO Call list function here when a memebr joins
-    pass
+    load_member(member)
 
 
 #get author's real name, or Discord handle otherwise
