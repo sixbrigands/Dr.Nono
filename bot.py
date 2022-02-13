@@ -115,9 +115,6 @@ def load_server(guild: discord.Guild):
                     else:
                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
-#TODO: make a func to build tables to be printed (both for members and server?)
-def build_table():
-    pass
 
 # What happens when bot connects to the server
 @bot.event  #registers an event
@@ -190,6 +187,19 @@ def nono_prefix(offender):
     ]
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
+# Build a table with provided dict
+def build_table():
+
+
+    nono_table = t2a(
+                header=["NoNo_Word", "Utterances"],
+                body=table_body_list
+            ) 
+    #nono_string = table_prefix + nono_table
+    nono_string = nono_table
+    print(nono_string)
+    nono_string = discord.Embed(title = table_prefix, description = code_block(nono_table))
+
 # Provide a list of all nono words a user has said with a fun picture
 # TODO: When provided with @everyone, print the server stats
 # TODO: look at listing swear count ratio against average
@@ -197,11 +207,6 @@ def nono_prefix(offender):
 @bot.command()
 async def list(ctx, offender=None):
     bot_id = int(bot.user.id)
-    nono_dict = OrderedDict()
-    with open('private/bad_words.txt') as f:
-        nono_list = f.readlines()
-        for bad_word in nono_list:
-            nono_dict[bad_word.strip()] = 0
     
     # Who's nono words am I listing? Without an argument, default to whoever made the command
     if offender == None:
@@ -210,10 +215,11 @@ async def list(ctx, offender=None):
     elif bot_id == get_user_id_from_mention(offender):
         await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
         return
+    elif offender == @everyone:
+        table = build_table(nono_dict_by_server)
     # If arg provided, get the user from the user_id
     else:
         try:
-            #offender = await bot.fetch_user(get_user_id_from_mention(offender)) #this returns a user object, with no nickname
             offender = ctx.guild.get_member(get_user_id_from_mention(offender)) # This returns a member object with nickname
         except Exception as e:
             print(e)
@@ -222,8 +228,7 @@ async def list(ctx, offender=None):
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
             return
     if offender == None:
-        logger.debug("I can't find this offender:")
-        logger.debug(offender)
+        logger.debug("I can't find this offender: " + str(offender))
         await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
         return
 
@@ -231,6 +236,7 @@ async def list(ctx, offender=None):
     table_prefix = nono_prefix(bold(get_name(offender)))
     table_body_list = []
     
+    # build table here, if none there are no nono words
 
     # If user has said no NoNo words, bail out
     if no_nono_words_found:
@@ -242,15 +248,13 @@ async def list(ctx, offender=None):
     with open('private/nono.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
-    nono_table = t2a(
-                header=["NoNo_Word", "Utterances"],
-                body=table_body_list
-            ) 
-    #nono_string = table_prefix + nono_table
-    nono_string = nono_table
-    print(nono_string)
-    nono_string = discord.Embed(title = table_prefix, description = code_block(nono_table))
+
+
+    # print nono table here:
+
     await ctx.channel.send(embed = nono_string)
+
+
 
 # Is a user message a greeting?
 def is_greeting(message_string):
