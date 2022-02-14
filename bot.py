@@ -1,3 +1,4 @@
+from ast import Raise
 import string
 import discord
 import json
@@ -188,12 +189,10 @@ def nono_prefix(offender):
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
 # Build a table with provided dict
-def build_table():
-
-
+def build_table(nono_dict: dict):
     nono_table = t2a(
-                header=["NoNo_Word", "Utterances"],
-                body=table_body_list
+            header=["NoNo_Word", "Utterances"],
+            body=table_body_list
             ) 
     #nono_string = table_prefix + nono_table
     nono_string = nono_table
@@ -215,31 +214,30 @@ async def list(ctx, offender=None):
     elif bot_id == get_user_id_from_mention(offender):
         await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
         return
+    # If arg is @everyone, build a table server
     elif offender == @everyone:
-        table = build_table(nono_dict_by_server)
+        nono_table = build_table(nono_dict_by_server)
     # If arg provided, get the user from the user_id
     else:
         try:
             offender = ctx.guild.get_member(get_user_id_from_mention(offender)) # This returns a member object with nickname
+            if offender == None:
+                Raise: Exception("Offender not found")
+            nono_table = build_table(nono_dict_by_member)
         except Exception as e:
             print(e)
             logger.debug("I can't find this offender:")
             logger.debug(offender)
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
             return
-    if offender == None:
-        logger.debug("I can't find this offender: " + str(offender))
-        await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
-        return
 
-    nono_table = ''
-    table_prefix = nono_prefix(bold(get_name(offender)))
-    table_body_list = []
+
+
     
     # build table here, if none there are no nono words
 
     # If user has said no NoNo words, bail out
-    if no_nono_words_found:
+    if nono_table == None:
         logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
         await ctx.channel.send("I can't believe it. " + bold(get_name(offender)) +" has never said a NoNo word!")
         return
