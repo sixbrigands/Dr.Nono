@@ -130,8 +130,10 @@ async def on bot is added to server..(server):
 
 
 @bot.event
-async dev on bot is added to new Channel
+async def on_group_join(channel, user)¶
+
     load_channel(text_channel)
+    # this will prob need to be added  to ~list, a check that I've been added to new channels. Will also need a channels dict to check for new additions
     
 nono_dict_by_server = {}
     #TODO: Write a function to list nono words for member, do all members here and save to dict of a dict
