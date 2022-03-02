@@ -22,6 +22,7 @@ logger.addHandler(handler)
 # A members intent is needed to get members objects from guilds
 intents = discord.Intents.default()
 intents.members = True
+intents.guild = True
 
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
@@ -92,7 +93,6 @@ def load_channel(text_channel: discord.TextChannel):
                 else:
                     nono_dict_by_server[message.author.guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
-
 # Load all words and members currently on the server, add it to the guild dict
 def load_server(guild: discord.Guild):
     print('Inserting all members on' + guild.name + ' into dicts!') 
@@ -117,31 +117,17 @@ def load_server(guild: discord.Guild):
                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
 
-# What happens when bot connects to the server
+# What happens when the bot is fully connected and online
 @bot.event  #registers an event
 async def on_ready(): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
     for server in bot.guilds:
         load_server(server)
-    
-@bot.event\
-async def on bot is added to server..(server):
-    load_server(server)
 
-
+# What happens when the bot joins a new server/guild
 @bot.event
-async def on_group_join(channel, user)¶
-
-    load_channel(text_channel)
-    # this will prob need to be added  to ~list, a check that I've been added to new channels. Will also need a channels dict to check for new additions
-    
-nono_dict_by_server = {}
-    #TODO: Write a function to list nono words for member, do all members here and save to dict of a dict
-
-# When a user joins the server, add
-@bot.event
-async def on_member_join(member):
-    load_member(member)
+async def on_guild_join(self, guild):
+    load_server(guild)
 
 
 #get author's real name, or Discord handle otherwise
