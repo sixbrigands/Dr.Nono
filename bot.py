@@ -22,7 +22,7 @@ logger.addHandler(handler)
 # A members intent is needed to get members objects from guilds
 intents = discord.Intents.default()
 intents.members = True
-intents.guild = True
+intents.guilds = True
 
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
@@ -126,7 +126,8 @@ async def on_ready(): #on ready called when bot has finish logging in
 
 # What happens when the bot joins a new server/guild
 @bot.event
-async def on_guild_join(self, guild):
+async def on_guild_join(guild):
+    print("I joined the " + guild.name)
     load_server(guild)
 
 
