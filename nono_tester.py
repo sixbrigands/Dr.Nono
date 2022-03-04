@@ -72,9 +72,9 @@ async def load_message(message):
         else:
             nono_dict_by_member[message.author.id] = {word: NoNo_Word(message_list, message_list.count(word), message.jump_url)}
         if message.author.id in nono_dict_by_server and word in nono_dict_by_server[message.author.guild.id]:
-            nono_dict_by_server[message.author.guild.id][word].update(message_list, message_list, message.jump_url)
+            nono_dict_by_server[message.guild.id][word].update(message_list, message_list, message.jump_url)
         else:
-            nono_dict_by_server[message.author.guild.id] = {word: NoNo_Word(message_list, message_list.count(word), message.jump_url)}     
+            nono_dict_by_server[message.guild.id] = {word: NoNo_Word(message_list, message_list.count(word), message.jump_url)}     
 
 # Comb through channel messages after bot is added to it
 async def load_channel(text_channel: discord.TextChannel):
@@ -84,7 +84,7 @@ async def load_channel(text_channel: discord.TextChannel):
     print('Inserting ' + text_channel.name + ' into dicts!') 
     logger.info('Inserting text channel: ' + text_channel.name + ' into dicts!')
     if bot.user in text_channel.members: # Check that bot has access to this channel
-        async for message in text_channel.history():
+        async for message in text_channel.history(limit=1000):
             await load_message(message)
         print("Done loading channel: " + text_channel.name)    
 
@@ -161,6 +161,8 @@ def spoiler(string):
     return "||" + string + "||"
 def code_block(string):
     return "```" + string + "```"
+def hyperlink(string, link):
+    return "[" + string + "](" + link + ")"
 
 # Get member object from <@username> string
 def get_user_id_from_mention(mention_string):
@@ -198,17 +200,20 @@ def nono_prefix(offender, ctx):
     ]
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
-# Build a table with provided dict
-def build_table(nono_dict: dict):
+# Build table by user giver a user id number
+def build_member_table(offender_id: int):
     # Return None if dict is empty
-    if not nono_dict:
+    if not nono_dict_by_member:
         return None
     no_nono_words_found = True
     table_body_list = []
-    for nono_word, count in nono_dict.items():
-        if count > 0:
+    # Loop through dict with word itself and the nono_word object
+    for word, nono_word in nono_dict_by_member[offender_id].items():
+        if nono_word.count > 0:
             no_nono_words_found = False
-            table_body_list.append([nono_word, count])
+            # Embed a link to a random message with the nono word
+            hyperlinked_word = hyperlink(word, random.choice(nono_word.jump_urls))
+            table_body_list.append(hyperlinked_word, nono_word.count)
     # Return None if dict has no nono words
     if no_nono_words_found:
         return None
@@ -218,32 +223,54 @@ def build_table(nono_dict: dict):
             ) 
     return nono_table
 
+# Build a table for an entire server given a guild/server id
+def build_server_table(server_id: int):
+    # Return None if dict is empty
+    if not nono_dict_by_server:
+        return None
+    no_nono_words_found = True
+    table_body_list = []
+    # Loop through dict with word itself and the nono_word object
+    for word, nono_word in nono_dict_by_server[server_id].items():
+        if nono_word.count > 0:
+            no_nono_words_found = False
+            # Embed a link to a random message with the nono word
+            hyperlinked_word = hyperlink(word, random.choice(nono_word.jump_urls))
+            table_body_list.append(hyperlinked_word, nono_word.count)
+    # Return None if dict has no nono words
+    if no_nono_words_found:
+        return None
+    nono_table = t2a(
+            header=["NoNo_Word", "Utterances"],
+            body=table_body_list
+            ) 
+
 # Provide a list of all nono words a user has said with a fun picture
 # TODO: When provided with @everyone, print the server stats
 # TODO: look at listing swear count ratio against average
 # TODO: Look at compairing two members
 @bot.command()
 async def test(ctx, offender=None):
-    print("List called")
     bot_id = int(bot.user.id)
-    
+    nono_table = None
     # Who's nono words am I listing? Without an argument, default to whoever made the command
     if offender == None:
         offender = ctx.author
+        nono_table = build_member_table(offender.id)
     # Dr. Nono can't be the offender!
     elif bot_id == get_user_id_from_mention(offender):
         await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
         return
     # If arg is @everyone, build a table server
     elif offender == 'all':
-        nono_table = build_table(nono_dict_by_server)
+        nono_table = build_server_table(ctx.guild)
     # If arg provided, get the user from the user_id
     else:
         try:
             offender = ctx.guild.get_member(get_user_id_from_mention(offender)) # This returns a member object with nickname
             if offender == None:
                 Raise: Exception("Offender not found")
-            nono_table = build_table(nono_dict_by_member)
+            nono_table = build_member_table(offender.id)
         except Exception as e:
             print(e)
             logger.debug("I can't find this offender:")
@@ -352,7 +379,7 @@ async def on_message(message): #called when bot has recieves a message
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
 
     # Scan the message for nono words and add them to the dicts
-    await load_message(message, message_word_list)
+    await load_message(message)
           
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
