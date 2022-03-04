@@ -68,20 +68,21 @@ async def load_message(message):
     # Count nono words in messages, add to server and member counts
     for word in nono_list:
         word_count = message_list.count(word)
-        # Insert into nono_words_by_member
-        if message.author.id in nono_dict_by_member and word in nono_dict_by_member[message.author.id]:
-            nono_dict_by_member[message.author.id][word].update(message_list, message.jump_url)
-        elif message.author.id in nono_dict_by_member:
-            nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, word_count, message.jump_url)
-        else:
-            nono_dict_by_member[message.author.id] = {word: NoNo_Word(message_list, word_count, message.jump_url)}
-        # Insert into nono_words_by_server
-        if message.guild.id in nono_dict_by_server and word in nono_dict_by_server[message.guild.id]:
-            nono_dict_by_server[message.guild.id][word].update(message_list, message.jump_url)
-        elif message.guild.id in nono_dict_by_member:
-            nono_dict_by_server[message.guild.id][word] = NoNo_Word(message_list, word_count, message.jump_url)
-        else:
-            nono_dict_by_server[message.guild.id] = {word: NoNo_Word(message_list, word_count, message.jump_url)}     
+        if word_count > 0:
+            # Insert into nono_words_by_member
+            if message.author.id in nono_dict_by_member and word in nono_dict_by_member[message.author.id]:
+                nono_dict_by_member[message.author.id][word].update(message_list, message.jump_url)
+            elif message.author.id in nono_dict_by_member:
+                nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, word_count, message.jump_url)
+            else:
+                nono_dict_by_member[message.author.id] = {word: NoNo_Word(message_list, word_count, message.jump_url)}
+            # Insert into nono_words_by_server
+            if message.guild.id in nono_dict_by_server and word in nono_dict_by_server[message.guild.id]:
+                nono_dict_by_server[message.guild.id][word].update(message_list, message.jump_url)
+            elif message.guild.id in nono_dict_by_member:
+                nono_dict_by_server[message.guild.id][word] = NoNo_Word(message_list, word_count, message.jump_url)
+            else:
+                nono_dict_by_server[message.guild.id] = {word: NoNo_Word(message_list, word_count, message.jump_url)}     
 
 # Comb through channel messages after bot is added to it
 async def load_channel(text_channel: discord.TextChannel):
@@ -104,8 +105,7 @@ async def load_server(guild: discord.Guild):
     for text_channel in guild.text_channels:
         await load_channel(text_channel)
     print("Done loading server: " + guild.name)
-    print(nono_dict_by_member)
-    print(nono_dict_by_server)
+
 
 
 
@@ -184,6 +184,7 @@ def get_user_id_from_mention(mention_string):
         return None 
 
 # What Dr. NoNo says before listing your NoNo words
+# Offender can be a member object or 'all'
 def nono_prefix(offender, ctx):
     # Different prefix if offender is an entire server
     server = ctx.guild.name
@@ -197,6 +198,9 @@ def nono_prefix(offender, ctx):
     ]
     if offender == 'all':
         return " \n \n" + random.choice(server_nono_prefixes) + " \n"
+    
+    # IF offender is a member
+    offender = get_name(offender)
     nono_prefixes = [
         "Be it known that the criminal, " + offender + ", has committed the following offenses:",
         "My my, " + offender + ", such language...",
@@ -221,7 +225,7 @@ def build_member_table(offender_id: int):
             no_nono_words_found = False
             # Embed a link to a random message with the nono word
             hyperlinked_word = hyperlink(word, random.choice(nono_word.jump_urls))
-            table_body_list.append(hyperlinked_word, nono_word.count)
+            table_body_list.append([hyperlinked_word, nono_word.count])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return None
@@ -244,7 +248,7 @@ def build_server_table(server_id: int):
             no_nono_words_found = False
             # Embed a link to a random message with the nono word
             hyperlinked_word = hyperlink(word, random.choice(nono_word.jump_urls))
-            table_body_list.append(hyperlinked_word, nono_word.count)
+            table_body_list.append([hyperlinked_word, nono_word.count])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return None
@@ -252,6 +256,7 @@ def build_server_table(server_id: int):
             header=["NoNo_Word", "Utterances"],
             body=table_body_list
             ) 
+    return nono_table
 
 # Provide a list of all nono words a user has said with a fun picture
 # TODO: When provided with @everyone, print the server stats
