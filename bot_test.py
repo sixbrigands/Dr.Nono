@@ -23,6 +23,9 @@ intents = discord.Intents.default()
 intents.members = True
 intents.guilds = True
 
+def hyperlink(string, link):
+    return "[" + string + "](" + link + ")"
+
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
 
@@ -55,7 +58,7 @@ async def on_message(message): #called when bot has recieves a message
 
 @bot.command()
 async def test(ctx, offender=None):
-    link_string = discord.Embed(title = "a link?", description = "blahblahblah[this is a link](https://google.com)blahblahblah")
+    link_string = discord.Embed(title = "a link?", description = "blahblahblah" + hyperlink("link", "https://google.com") + "blahblahblah")
     await ctx.channel.send(embed=link_string)
 
 
