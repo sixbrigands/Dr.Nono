@@ -5,7 +5,6 @@ import json
 import random
 from discord.utils import get
 from discord.ext import commands
-from paramiko import Channel
 from table2ascii import table2ascii as t2a
 from collections import OrderedDict
 import logging
@@ -165,7 +164,19 @@ def get_user_id_from_mention(mention_string):
         return None 
 
 # What Dr. NoNo says before listing your NoNo words
-def nono_prefix(offender):
+def nono_prefix(offender, ctx):
+    # Different prefix if offender is an entire server
+    server = ctx.guild.name
+    server_nono_prefixes = [
+        server + ", look upon your sins...",
+        "What a filthy place this is...",
+        server + ", never have I seen a more wretched hive of scum and profanity",
+        "This is clearly NOT a Christrian Minecraft server",
+        "Shame on you all.",
+        "I suppose I should have expected this. This is " + server + " after all"
+    ]
+    if offender == 'all':
+        return " \n \n" + random.choice(server_nono_prefixes) + " \n"
     nono_prefixes = [
         "Be it known that the criminal, " + offender + ", has committed the following offenses:",
         "My my, " + offender + ", such language...",
@@ -179,14 +190,23 @@ def nono_prefix(offender):
 
 # Build a table with provided dict
 def build_table(nono_dict: dict):
+    # Return None if dict is empty
+    if not nono_dict:
+        return None
+    no_nono_words_found = True
+    table_body_list = []
+    for nono_word, count in nono_dict.items():
+        if count > 0:
+            no_nono_words_found = False
+            table_body_list.append([nono_word, count])
+    # Return None if dict has no nono words
+    if no_nono_words_found:
+        return None
     nono_table = t2a(
             header=["NoNo_Word", "Utterances"],
             body=table_body_list
             ) 
-    #nono_string = table_prefix + nono_table
-    nono_string = nono_table
-    print(nono_string)
-    nono_string = discord.Embed(title = table_prefix, description = code_block(nono_table))
+    return nono_table
 
 # Provide a list of all nono words a user has said with a fun picture
 # TODO: When provided with @everyone, print the server stats
@@ -204,7 +224,7 @@ async def list(ctx, offender=None):
         await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
         return
     # If arg is @everyone, build a table server
-    elif offender == @everyone:
+    elif offender == 'all':
         nono_table = build_table(nono_dict_by_server)
     # If arg provided, get the user from the user_id
     else:
@@ -223,8 +243,10 @@ async def list(ctx, offender=None):
 
 
     
-    # build table here, if none there are no nono words
-
+    # If the entire server has no documented nono words... IDK dude just give up
+    if nono_table == None and offender == 'all':
+        logger.debug("The entire server known as: " + ctx.guild.name + " has said no NoNo words.")
+        return
     # If user has said no NoNo words, bail out
     if nono_table == None:
         logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
@@ -238,7 +260,7 @@ async def list(ctx, offender=None):
 
 
     # print nono table here:
-
+    nono_string = discord.Embed(title = nono_prefix(offender, ctx), description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
 
 

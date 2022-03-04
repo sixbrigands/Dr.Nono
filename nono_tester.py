@@ -5,7 +5,6 @@ import json
 import random
 from discord.utils import get
 from discord.ext import commands
-from paramiko import Channel
 from table2ascii import table2ascii as t2a
 from collections import OrderedDict
 import logging
@@ -62,59 +61,65 @@ with open('private/bad_words.txt') as f:
 #                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
 
 # Scan a single message and update dicts with nono_words:
-def load_message(message_list, author: discord.member):
+async def load_message(message):
+    #strip out punctutation
+    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+    message_list = message_string.lower().split()
+    # Count nono words in messages, add to server and member counts
     for word in nono_list:
-        if word in nono_dict_by_member[author.id]:
-            nono_dict_by_member[author.id][word].update(message_list, message_list, message.jump_url)
+        if message.author.id in nono_dict_by_member and word in nono_dict_by_member[message.author.id]:
+            nono_dict_by_member[message.author.id][word].update(message_list, message_list, message.jump_url)
         else:
-            nono_dict_by_member[author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-        if word in nono_dict_by_server[author.guild.id]:
-            nono_dict_by_server[author.guild.id][word].update(message_list, message_list, message.jump_url)
-        else:   
-            nono_dict_by_server[author.guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+            nono_dict_by_member[message.author.id] = {word: NoNo_Word(message_list, message_list.count(word), message.jump_url)}
+        if message.author.id in nono_dict_by_server and word in nono_dict_by_server[message.author.guild.id]:
+            nono_dict_by_server[message.author.guild.id][word].update(message_list, message_list, message.jump_url)
+        else:
+            nono_dict_by_server[message.author.guild.id] = {word: NoNo_Word(message_list, message_list.count(word), message.jump_url)}     
 
 # Comb through channel messages after bot is added to it
-def load_channel(text_channel: discord.TextChannel):
+async def load_channel(text_channel: discord.TextChannel):
     print('Inserting ' + text_channel.name + ' into dicts!') 
-    logger.info('Inserting ' + text_channel.name + ' into dicts!')
+    logger.info('Inserting text channel: ' + text_channel.name + ' into dicts!')
     if bot.user in text_channel.members: # Check that bot has access to this channel
-        for message in text_channel.history():
-            #strip out punctutation
-            message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
-            message_list = message_string.lower().split()
-            # Count nono words in messages, add to server and member counts
-            for word in nono_list:
-                if word in nono_dict_by_member[message.author.id]:
-                    nono_dict_by_member[message.author.id][word].update(message_list, message_list, message.jump_url)
-                else:
-                    nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-                if word in nono_dict_by_server[message.author.guild.id]:
-                    nono_dict_by_server[message.author.guild.id][word].update(message_list, message_list, message.jump_url)
-                else:
-                    nono_dict_by_server[message.author.guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
+        async for message in text_channel.history():
+            await load_message(message)
+            
 
 # Load all words and members currently on the server, add it to the guild dict
-def load_server(guild: discord.Guild):
-    print('Inserting all members on' + guild.name + ' into dicts!') 
-    logger.info('Inserting all members on' + guild.name + ' into dicts!') 
+#TODO, are you repeating code here? why not call load_channel each time?
+async def load_server(guild: discord.Guild):
+    print('Inserting all members on ' + guild.name + ' into dicts!') 
+    logger.info('Inserting all members on ' + guild.name + ' into dicts!') 
     nono_dict_by_server[guild.id] = {}
     for text_channel in guild.text_channels:
-        print("scanning ", text_channel.name)
-        if bot.user in text_channel.members: # Check that bot has access to this channel
-            for message in text_channel.history():
-                #strip out punctutation
-                message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
-                message_list = message_string.lower().split()
-                # Count nono words in messages, add to server and member counts
-                for word in nono_list:
-                    if word in nono_dict_by_member[message.author.id]:
-                        nono_dict_by_member[message.author.id][word].update(message_list, message_list, message.jump_url)
-                    else:
-                        nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-                    if word in nono_dict_by_server[guild.id]:
-                        nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
-                    else:
-                        nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
+        await load_channel(text_channel)
+
+
+
+
+
+
+
+
+
+
+
+        # print("scanning ", text_channel.name)
+        # if bot.user in text_channel.members: # Check that bot has access to this channel
+        #     async for message in text_channel.history(limit=None):
+        #         #strip out punctutation
+        #         message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+        #         message_list = message_string.lower().split()
+        #         # Count nono words in messages, add to server and member counts
+        #         for word in nono_list:
+        #             if word in nono_dict_by_member[message.author.id]:
+        #                 nono_dict_by_member[message.author.id][word].update(message_list, message_list, message.jump_url)
+        #             else:
+        #                 nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
+        #             if word in nono_dict_by_server[guild.id]:
+        #                 nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
+        #             else:
+        #                 nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
 
 # What happens when the bot is fully connected and online
@@ -122,13 +127,13 @@ def load_server(guild: discord.Guild):
 async def on_ready(): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
     for server in bot.guilds:
-        load_server(server)
+        await load_server(server)
 
 # What happens when the bot joins a new server/guild
 @bot.event
 async def on_guild_join(guild):
     print("I joined the " + guild.name)
-    load_server(guild)
+    await load_server(guild)
 
 
 #get author's real name, or Discord handle otherwise
@@ -165,7 +170,19 @@ def get_user_id_from_mention(mention_string):
         return None 
 
 # What Dr. NoNo says before listing your NoNo words
-def nono_prefix(offender):
+def nono_prefix(offender, ctx):
+    # Different prefix if offender is an entire server
+    server = ctx.guild.name
+    server_nono_prefixes = [
+        server + ", look upon your sins...",
+        "What a filthy place this is...",
+        server + ", never have I seen a more wretched hive of scum and profanity",
+        "This is clearly NOT a Christrian Minecraft server",
+        "Shame on you all.",
+        "I suppose I should have expected this. This is " + server + " after all"
+    ]
+    if offender == 'all':
+        return " \n \n" + random.choice(server_nono_prefixes) + " \n"
     nono_prefixes = [
         "Be it known that the criminal, " + offender + ", has committed the following offenses:",
         "My my, " + offender + ", such language...",
@@ -179,14 +196,26 @@ def nono_prefix(offender):
 
 # Build a table with provided dict
 def build_table(nono_dict: dict):
+    # Return None if dict is empty
+    if not nono_dict:
+        return None
+    no_nono_words_found = True
+    table_body_list = []
+    for nono_word, count in nono_dict.items():
+        if count > 0:
+            no_nono_words_found = False
+            table_body_list.append([nono_word, count])
+    # Return None if dict has no nono words
+    if no_nono_words_found:
+        return None
     nono_table = t2a(
             header=["NoNo_Word", "Utterances"],
             body=table_body_list
             ) 
-    
     return nono_table
+
 # Provide a list of all nono words a user has said with a fun picture
-# TODO: When provided with 'all', print the server stats
+# TODO: When provided with @everyone, print the server stats
 # TODO: look at listing swear count ratio against average
 # TODO: Look at compairing two members
 @bot.command()
@@ -200,7 +229,7 @@ async def list(ctx, offender=None):
     elif bot_id == get_user_id_from_mention(offender):
         await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
         return
-    # If arg is 'all', build a table server
+    # If arg is @everyone, build a table server
     elif offender == 'all':
         nono_table = build_table(nono_dict_by_server)
     # If arg provided, get the user from the user_id
@@ -217,6 +246,13 @@ async def list(ctx, offender=None):
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
             return
 
+
+
+    
+    # If the entire server has no documented nono words... IDK dude just give up
+    if nono_table == None and offender == 'all':
+        logger.debug("The entire server known as: " + ctx.guild.name + " has said no NoNo words.")
+        return
     # If user has said no NoNo words, bail out
     if nono_table == None:
         logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
@@ -229,10 +265,9 @@ async def list(ctx, offender=None):
         await ctx.channel.send(file=nono_gif) 
 
 
-    nono_string = nono_table
-    print(nono_string)
-    nono_table_and_prefix = discord.Embed(title = nono_prefix(), description = code_block(nono_table))
-    await ctx.channel.send(embed = nono_table)
+    # print nono table here:
+    nono_string = discord.Embed(title = nono_prefix(offender, ctx), description = code_block(nono_table))
+    await ctx.channel.send(embed = nono_string)
 
 
 
@@ -313,7 +348,7 @@ async def on_message(message): #called when bot has recieves a message
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
 
     # Scan the message for nono words and add them to the dicts
-    load_message(message_word_list)
+    await load_message(message, message_word_list)
           
     # This allows commands to be used along with on_message events
     await bot.process_commands(message)
