@@ -50,6 +50,13 @@ async def on_message(message): #called when bot has recieves a message
 
     await message.channel.send(message.content)
 
+    # This allows commands to be used along with on_message events
+    await bot.process_commands(message)
+
+@bot.command()
+async def test(ctx, offender=None):
+    link_string = discord.Embed(title = "a link?", description = "blahblahblah[this is a link](https://google.com)blahblahblah")
+    await ctx.channel.send(embed=link_string)
 
 
 # Load the secret token that allows configuation of the bot
