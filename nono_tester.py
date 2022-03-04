@@ -78,12 +78,15 @@ async def load_message(message):
 
 # Comb through channel messages after bot is added to it
 async def load_channel(text_channel: discord.TextChannel):
+    if bot.user not in text_channel.members:
+        print('I am not allowed to load channel: ' + text_channel.name + ' into dicts!')
+        return
     print('Inserting ' + text_channel.name + ' into dicts!') 
     logger.info('Inserting text channel: ' + text_channel.name + ' into dicts!')
     if bot.user in text_channel.members: # Check that bot has access to this channel
         async for message in text_channel.history():
             await load_message(message)
-            
+        print("Done loading channel: " + text_channel.name)    
 
 # Load all words and members currently on the server, add it to the guild dict
 #TODO, are you repeating code here? why not call load_channel each time?
@@ -93,6 +96,7 @@ async def load_server(guild: discord.Guild):
     nono_dict_by_server[guild.id] = {}
     for text_channel in guild.text_channels:
         await load_channel(text_channel)
+    print("Done loading server: " + guild.name)
 
 
 
@@ -219,7 +223,8 @@ def build_table(nono_dict: dict):
 # TODO: look at listing swear count ratio against average
 # TODO: Look at compairing two members
 @bot.command()
-async def list(ctx, offender=None):
+async def test(ctx, offender=None):
+    print("List called")
     bot_id = int(bot.user.id)
     
     # Who's nono words am I listing? Without an argument, default to whoever made the command
@@ -300,7 +305,6 @@ ultimate_nono_dict = {
 # Respond to messages on text channels the bot can see
 @bot.event 
 async def on_message(message): #called when bot has recieves a message
-    
     # Don't respond to the bot itself
     if message.author == bot.user:
         return
