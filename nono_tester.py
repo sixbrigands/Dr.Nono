@@ -76,16 +76,16 @@ async def load_message(message):
             if message.author.id in nono_dict_by_member and word in nono_dict_by_member[message.author.id]:
                 nono_dict_by_member[message.author.id][word].update(message_list, message.jump_url)
             elif message.author.id in nono_dict_by_member:
-                nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, word_count, message.jump_url)
+                nono_dict_by_member[message.author.id][word] = NoNo_Word(word, word_count, message.jump_url)
             else:
-                nono_dict_by_member[message.author.id] = {word: NoNo_Word(message_list, word_count, message.jump_url)}
+                nono_dict_by_member[message.author.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
             # Insert into nono_words_by_server
             if message.guild.id in nono_dict_by_server and word in nono_dict_by_server[message.guild.id]:
                 nono_dict_by_server[message.guild.id][word].update(message_list, message.jump_url)
             elif message.guild.id in nono_dict_by_server:
-                nono_dict_by_server[message.guild.id][word] = NoNo_Word(message_list, word_count, message.jump_url)
+                nono_dict_by_server[message.guild.id][word] = NoNo_Word(word, word_count, message.jump_url)
             else:
-                nono_dict_by_server[message.guild.id] = {word: NoNo_Word(message_list, word_count, message.jump_url)}     
+                nono_dict_by_server[message.guild.id] = {word: NoNo_Word(word, word_count, message.jump_url)}     
 
 # Comb through channel messages after bot is added to it
 async def load_channel(text_channel: discord.TextChannel):
@@ -101,6 +101,8 @@ async def load_channel(text_channel: discord.TextChannel):
 
 # Load all words and members currently on the server, add it to the guild dict
 async def load_server(guild: discord.Guild):
+    if guild.id not in nono_dict_by_server:
+        nono_dict_by_server[guild.id] = {}
     print('Inserting all members on ' + guild.name + ' into dicts!') 
     logger.info('Inserting all members on ' + guild.name + ' into dicts!') 
     for text_channel in guild.text_channels:
@@ -239,6 +241,9 @@ def build_member_table(offender_id: int):
 def build_server_table(server_id: int):
     # Return None if dict is empty
     if not nono_dict_by_server:
+        return None
+    # Return None if nested dict for server id is empty
+    if not nono_dict_by_server[server_id]:
         return None
     no_nono_words_found = True
     table_body_list = []
