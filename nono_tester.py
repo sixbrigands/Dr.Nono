@@ -82,7 +82,7 @@ async def load_message(message):
             # Insert into nono_words_by_server
             if message.guild.id in nono_dict_by_server and word in nono_dict_by_server[message.guild.id]:
                 nono_dict_by_server[message.guild.id][word].update(message_list, message.jump_url)
-            elif message.guild.id in nono_dict_by_member:
+            elif message.guild.id in nono_dict_by_server:
                 nono_dict_by_server[message.guild.id][word] = NoNo_Word(message_list, word_count, message.jump_url)
             else:
                 nono_dict_by_server[message.guild.id] = {word: NoNo_Word(message_list, word_count, message.jump_url)}     
@@ -103,7 +103,6 @@ async def load_channel(text_channel: discord.TextChannel):
 async def load_server(guild: discord.Guild):
     print('Inserting all members on ' + guild.name + ' into dicts!') 
     logger.info('Inserting all members on ' + guild.name + ' into dicts!') 
-    nono_dict_by_server[guild.id] = {}
     for text_channel in guild.text_channels:
         await load_channel(text_channel)
     print("Done loading server: " + guild.name)
@@ -226,8 +225,7 @@ def build_member_table(offender_id: int):
         if nono_word.count > 0:
             no_nono_words_found = False
             # Embed a link to a random message with the nono word
-            hyperlinked_word = hyperlink(word, random.choice(nono_word.jump_urls))
-            table_body_list.append([hyperlinked_word, nono_word.count])
+            table_body_list.append([word, nono_word.count])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return None
@@ -249,8 +247,7 @@ def build_server_table(server_id: int):
         if nono_word.count > 0:
             no_nono_words_found = False
             # Embed a link to a random message with the nono word
-            hyperlinked_word = hyperlink(word, random.choice(nono_word.jump_urls))
-            table_body_list.append([hyperlinked_word, nono_word.count])
+            table_body_list.append([word, nono_word.count])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return None
