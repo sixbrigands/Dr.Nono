@@ -26,6 +26,8 @@ intents.guilds = True
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
 
+#TODO nono_dict_by member must be separated by guild!
+# Pobably will need to make a custom object, one that outputs self to file
 # Members{NoNo_Words{}}
 nono_dict_by_member = {}
 # Guilds{NoNo_Words{}}
@@ -61,6 +63,7 @@ with open('private/bad_words.txt') as f:
 #                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
 
 # Scan a single message and update dicts with nono_words:
+# TODO: I can't have the table be in code block and have the jump links working too. Maybe I just save the naughtiest message at the end  and link to that
 async def load_message(message):
     #strip out punctutation
     message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
@@ -97,7 +100,6 @@ async def load_channel(text_channel: discord.TextChannel):
         print("Done loading channel: " + text_channel.name)    
 
 # Load all words and members currently on the server, add it to the guild dict
-#TODO, are you repeating code here? why not call load_channel each time?
 async def load_server(guild: discord.Guild):
     print('Inserting all members on ' + guild.name + ' into dicts!') 
     logger.info('Inserting all members on ' + guild.name + ' into dicts!') 
@@ -187,7 +189,7 @@ def get_user_id_from_mention(mention_string):
 # Offender can be a member object or 'all'
 def nono_prefix(offender, ctx):
     # Different prefix if offender is an entire server
-    server = ctx.guild.name
+    server = bold(ctx.guild.name)
     server_nono_prefixes = [
         server + ", look upon your sins...",
         "What a filthy place this is...",
@@ -200,7 +202,7 @@ def nono_prefix(offender, ctx):
         return " \n \n" + random.choice(server_nono_prefixes) + " \n"
     
     # IF offender is a member
-    offender = get_name(offender)
+    offender = bold(get_name(offender))
     nono_prefixes = [
         "Be it known that the criminal, " + offender + ", has committed the following offenses:",
         "My my, " + offender + ", such language...",
