@@ -36,10 +36,13 @@ superlatives_by_member = {}
 superlatives_by_server = {}
 # Build list of bad words for late dict insertion
 nono_list = []
+nono_set = set()
 with open('private/bad_words.txt') as f:
         rough_list = f.readlines()
         for bad_word in rough_list:
-            nono_list.append(bad_word.strip())
+            stripped_word = bad_word.strip()
+            nono_list.append(stripped_word)
+            nono_set.add(stripped_word)
 
 # Scan a single message and update dicts with nono_words:
 # TODO: I can't have the table be in code block and have the jump links working too. Maybe I just save the naughtiest message at the end  and link to that
@@ -103,8 +106,8 @@ async def load_server(guild: discord.Guild):
         nono_dict_by_server[guild.id] = {}
         superlatives_by_member[guild.id] = {}
         superlatives_by_server[guild.id] = {'filthiest_message_count': 0}
-    print('Inserting all members on ' + guild.name + ' into dicts!') 
-    logger.info('Inserting all members on ' + guild.name + ' into dicts!') 
+    print('Inserting all text channels on ' + guild.name + ' into dicts!') 
+    logger.info('Inserting all text channels  on ' + guild.name + ' into dicts!') 
     for text_channel in guild.text_channels:
         await load_channel(text_channel)
     print("Done loading server: " + guild.name)
@@ -216,9 +219,9 @@ def build_member_table(server_id: int, offender_id: int):
 
 # Build a table for an entire server given a guild/server id
 def build_server_table(server_id: int):
-    # Return None if nested dict for server id is empty
+    # If no words exist for the server, return -1
     if not nono_dict_by_server[server_id]:
-        return None
+        return -1
     no_nono_words_found = True
     table_body_list = []
     # Loop through dict with word itself and the nono_word object
@@ -265,14 +268,13 @@ async def test(ctx, offender=None):
         try:
             offender = ctx.guild.get_member(get_user_id_from_mention(offender)) # This returns a member object with nickname
             if offender == None:
-                Raise: Exception("Offender not found")
+                raise Exception("Offender not found")
             nono_table = build_member_table(offender.guild.id, offender.id)    
             # If user has said no NoNo words, bail out
             if nono_table == -1:
                 logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
                 await ctx.channel.send("I can't believe it. " + bold(get_name(offender)) +" has never said a NoNo word!")
                 return
-
         except Exception as e:
             print(e)
             logger.debug("I can't find this offender:")
@@ -297,7 +299,44 @@ async def compare(ctx, offender=None):
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
 async def worst(ctx, offender=None):
-    pass
+    entire_server = False
+    message = ''
+    prefix = ''
+    if offender == None:
+        offender = ctx.author
+    elif offender == "all":
+        entire_server = True
+    else:
+        try: 
+            offender = get_user_id_from_mention(offender)
+            if offender == None:
+                raise Exception("Offender not found")
+        except Exception as e:
+            print(e)
+            logger.debug("I can't find this offender:")
+            logger.debug(offender)
+            await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
+            return   
+    if entire_server:
+        message = superlatives_by_server[ctx.guild.id]['filthiest_message']
+        prefix = 'This is the most vile message ever posted on ' + ctx.guild.name + '\n'
+    else:
+        message = superlatives_by_member[offender.guild.id][offender.id]['filthiest_message']
+        prefix = get_name(offender) + ", this is the filthiest message you've posted here...\n"
+    #message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+    message_word_list = message.content.split()
+    highlighted_message = "> "
+    for word in message_word_list:
+        clean_word = ''.join(c for c in word if c.isalpha() or c == ' ').lower()
+        if clean_word in nono_set:
+            highlighted_message += " " + bold(word)
+        else:
+            highlighted_message += " " + word
+
+    suffix = "~" + get_name(message.author) + ", " + message.created_at.strftime("%d%b%Y").upper()
+    suffix = hyperlink(suffix, message.jump_url)
+    embed = discord.Embed(title = prefix, description = highlighted_message + "\n" + suffix)
+    await ctx.channel.send(embed = embed)
 
 # Is a user message a greeting?
 def is_greeting(message_string):
