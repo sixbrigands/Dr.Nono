@@ -75,11 +75,11 @@ async def load_message(message):
             else:
                 nono_dict_by_server[message.guild.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
     # Check if this message has the most nono words of any one message written by a particular user, or by anyone on the server
-    print(superlatives_by_member)
-    if num_nono_words_in_message > superlatives_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
-        superlatives_by_member[message.guild.id][message.author.id]['filthiest_message'] = message
-    if num_nono_words_in_message > superlatives_by_server[message.guild.id]['filthiest_message_count']:
-        superlatives_by_server[message.guild.id]['filthiest_message'] = message
+    if num_nono_words_in_message > 0:
+        if num_nono_words_in_message > superlatives_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
+            superlatives_by_member[message.guild.id][message.author.id]['filthiest_message'] = message
+        if num_nono_words_in_message > superlatives_by_server[message.guild.id]['filthiest_message_count']:
+            superlatives_by_server[message.guild.id]['filthiest_message'] = message
 
 
 # Comb through channel messages after bot is added to it
