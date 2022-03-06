@@ -69,7 +69,8 @@ async def load_message(message):
                 nono_dict_by_member[message.guild.id][message.author.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
                 superlatives_by_member[message.guild.id][message.author.id] = {
                     "filthiest_message_count": word_count,
-                    "filthiest_message": message
+                    "filthiest_message": message,
+                    'total_nono_words' : 0
                     }
             # Insert into nono_words_by_server
             # We assume the by_server dict has all guild names added during load_server
@@ -85,7 +86,9 @@ async def load_message(message):
         if num_nono_words_in_message > superlatives_by_server[message.guild.id]['filthiest_message_count']:
             superlatives_by_server[message.guild.id]['filthiest_message'] = message
             superlatives_by_server[message.guild.id]['filthiest_message_count'] = num_nono_words_in_message
-
+        #Update total_nono_words for both superlative dicts
+        superlatives_by_member[message.guild.id][message.author.id]['total_nono_words'] += num_nono_words_in_message
+        superlatives_by_server[message.guild.id]['total_nono_words'] += num_nono_words_in_message
 
 # Comb through channel messages after bot is added to it
 async def load_channel(text_channel: discord.TextChannel):
@@ -107,7 +110,10 @@ async def load_server(guild: discord.Guild):
         nono_dict_by_member[guild.id] = {}
         nono_dict_by_server[guild.id] = {}
         superlatives_by_member[guild.id] = {}
-        superlatives_by_server[guild.id] = {'filthiest_message_count': 0}
+        superlatives_by_server[guild.id] = {
+            'filthiest_message_count': 0,
+            'total_nono_words'       : 0
+            }
     print('Inserting all text channels on ' + guild.name + ' into dicts!') 
     logger.info('Inserting all text channels  on ' + guild.name + ' into dicts!') 
     for text_channel in guild.text_channels:
@@ -166,7 +172,8 @@ def get_user_id_from_mention(mention_string):
 
 # What Dr. NoNo says before listing your NoNo words
 # Offender can be a member object or 'all'
-def nono_prefix(offender, ctx):
+# Offender2 is only used for comparisons
+def nono_prefix(ctx, offender1: discord.Member, offender2: discord.Member = None):
     # Different prefix if offender is an entire server
     server = bold(ctx.guild.name)
     server_nono_prefixes = [
@@ -179,17 +186,18 @@ def nono_prefix(offender, ctx):
     ]
     if offender == 'all':
         return " \n \n" + random.choice(server_nono_prefixes) + " \n"
-    
+    elif offender
+
     # IF offender is a member
-    offender = bold(get_name(offender))
+    offender1 = bold(get_name(offender1))
     nono_prefixes = [
-        "Be it known that the criminal, " + offender + ", has committed the following offenses:",
-        "My my, " + offender + ", such language...",
-        offender + "! You're due for a donation to the swear jar",
-        "This is a Christrian Minecraft server, " + offender,
-        offender + "! For shame.",
-        "Hmm, " + offender + "... why am I not surprised?",
-        "I've got my eye on you, " + offender + "...",
+        "Be it known that the criminal, " + offender1 + ", has committed the following offenses:",
+        "My my, " + offender1 + ", such language...",
+        offender1 + "! You're due for a donation to the swear jar",
+        "This is a Christrian Minecraft server, " + offender1,
+        offender1 + "! For shame.",
+        "Hmm, " + offender1 + "... why am I not surprised?",
+        "I've got my eye on you, " + offender1 + "...",
     ]
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
@@ -203,19 +211,26 @@ def build_member_table(server_id: int, offender_id: int):
         return -1
     no_nono_words_found = True
     table_body_list = []
+    member_total = superlatives_by_member[server_id]['total_nono_words']
+    server_total = superlatives_by_server['total_nono_words']
     # Loop through dict with word itself and the nono_word object
     for word, nono_word in nono_dict_by_member[server_id][offender_id].items():
         if nono_word.count > 0:
             no_nono_words_found = False
             # Caculate the percentage of utterances over the user alone, and over the entire server
             serverwide_percentage = str(round(nono_word.count / nono_dict_by_server[server_id][word].count * 100, 2)) + "%"
-            table_body_list.append([word, nono_word.count, serverwide_percentage])
+            personal_percentage = str(round(nono_word.count / member_total * 100, 2)) + "%"
+            table_body_list.append([word, nono_word.count, personal_percentage, serverwide_percentage])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return -1
+    total_serverwide_percentage = str(round(member_total/ server_total * 100, 2)) + "%"
+    footer = [bold("Totals:"), member_total, "100.0%", total_serverwide_percentage]
     nono_table = t2a(
-            header=["NoNo_Word", "Utterances", "Serverwide_Percentage"],
-            body=table_body_list
+            header=["NoNo_Word", "Utterances", "Personal", "Serverwide"],
+            body=table_body_list,
+            footer = footer,
+            style='thin_thick'
             ) 
     return nono_table
 
@@ -347,10 +362,51 @@ async def worst(ctx, offender=None):
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
 async def compare(ctx, offender1 = -1, offender2 = None):
+    # What if user doesn't provide any args?
+    if offender1 == -1:
+        await ctx.channel.send('Please specify at least one member. Type "~help compare" for details.')
+        return
+    # if only one user is provided, the other is the author
+    elif offender2 == None:
+        offender2 = ctx.guild.get_member(get_user_id_from_mention(offender1))
+        offender1 = ctx.author
+    # Otherwise just try and get both provided offenders
+    else:
+        try:
+            offender1 = ctx.guild.get_member(get_user_id_from_mention(offender1))
+            if offender1 == None:
+                raise Exception("Offender1 not found")
+        except Exception as e:
+            print(e)
+            logger.debug("I can't find this offender:")
+            logger.debug(offender1)
+            await ctx.channel.send("I couldn't find the first user, " + get_name(ctx.author) + ", try again.")
+            return   
+        try:
+            offender2 = ctx.guild.get_member(get_user_id_from_mention(offender2))
+            if offender1 == None:
+                raise Exception("Offender1 not found")
+        except Exception as e:
+            print(e)
+            logger.debug("I can't find this offender:")
+            logger.debug(offender1)
+            await ctx.channel.send("I couldn't find the second user, " + get_name(ctx.author) + ", try again.")
+            return  
+
+
+    for word in nono_list:
+
+    
+    
+    
+    
     # Send picture and nono_word table to channel
     with open('private/compare.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
+
+    nono_string = discord.Embed(title = nono_prefix(offender, ctx), description = code_block(nono_table))
+    await ctx.channel.send(embed = nono_string)
 
 # Is a user message a greeting?
 def is_greeting(message_string):
