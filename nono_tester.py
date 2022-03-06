@@ -26,11 +26,9 @@ intents.guilds = True
 # All commands must be prepended with '~'
 bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=True)
 
-#TODO nono_dict_by member must be separated by guild!
-# Pobably will need to make a custom object, one that outputs self to file
-# Members{NoNo_Words{}}
+# Guild_id{Members_id{word: NoNo_word}
 nono_dict_by_member = {}
-# Guilds{NoNo_Words{}}
+# Guild_id{NoNo_Words{}}
 nono_dict_by_server = {}
 # Build list of bad words for late dict insertion
 nono_list = []
@@ -39,53 +37,42 @@ with open('private/bad_words.txt') as f:
         for bad_word in rough_list:
             nono_list.append(bad_word.strip())
 
-# # Add a member to the dictionary and tally their nono words
-# def load_member(guild: discord.Guild, member: discord.Member):
-#     print('Inserting ' + get_name(member) + ' into dicts!') 
-#     logger.info('Inserting ' + get_name(member) + ' into dicts!')
-#     nono_dict_by_member[member.id] = {}
-#     for text_channel in guild.text_channels:
-#         print("scanning ", text_channel.name)
-#         if bot.user in text_channel.members and member in text_channel.members: # Check that bot and member is in this channel
-#             for message in text_channel.history():
-#                 #strip out punctutation
-#                 message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
-#                 message_list = message_string.lower().split()
-#                 # Count nono words in messages, add to server and member counts
-#                 for word in nono_list:
-#                     if word in nono_dict_by_member[member.id]:
-#                         nono_dict_by_member[member.id][word].update(message_list, message_list, message.jump_url)
-#                     else:
-#                         nono_dict_by_member[member.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-#                     if word in nono_dict_by_server[guild.id]:
-#                         nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
-#                     else:
-#                         nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-
 # Scan a single message and update dicts with nono_words:
 # TODO: I can't have the table be in code block and have the jump links working too. Maybe I just save the naughtiest message at the end  and link to that
 async def load_message(message):
     #strip out punctutation
     message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
     message_list = message_string.lower().split()
-    # Count nono words in messages, add to server and member counts
+    # Count nono words in messages, add to server and member counts, save message with most nono words in it
+    num_nono_words_in_message = 0
+    most_nono_words_in_message = 0
     for word in nono_list:
         word_count = message_list.count(word)
         if word_count > 0:
+            num_nono_words_in_message += word_count
             # Insert into nono_words_by_member
-            if message.author.id in nono_dict_by_member and word in nono_dict_by_member[message.author.id]:
-                nono_dict_by_member[message.author.id][word].update(message_list, message.jump_url)
-            elif message.author.id in nono_dict_by_member:
-                nono_dict_by_member[message.author.id][word] = NoNo_Word(word, word_count, message.jump_url)
+            if message.author.id in nono_dict_by_member[message.guild.id] and word in nono_dict_by_member[nono_dict_by_member][message.guild.id][message.author.id]:
+                nono_dict_by_member[message.guild.id][message.author.id][word].update(message_list, message.jump_url)
+            elif message.author.id in nono_dict_by_member[message.guild.id]:
+                nono_dict_by_member[message.guild.id][message.author.id][word] = NoNo_Word(word, word_count, message.jump_url)
+            # If the user ID in not present, add it and init the 'filtiest message_count'
             else:
-                nono_dict_by_member[message.author.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
+                nono_dict_by_member[message.guild.id][message.author.id] = {
+                    word: NoNo_Word(word, word_count, message.jump_url),
+                    'filthiest_message_count': 0
+                    }
             # Insert into nono_words_by_server
-            if message.guild.id in nono_dict_by_server and word in nono_dict_by_server[message.guild.id]:
+            # We assume the by_server dict has all guild names added during load_server
+            if word in nono_dict_by_server[message.guild.id]:
                 nono_dict_by_server[message.guild.id][word].update(message_list, message.jump_url)
-            elif message.guild.id in nono_dict_by_server:
-                nono_dict_by_server[message.guild.id][word] = NoNo_Word(word, word_count, message.jump_url)
             else:
-                nono_dict_by_server[message.guild.id] = {word: NoNo_Word(word, word_count, message.jump_url)}     
+                nono_dict_by_server[message.guild.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
+    # Check if this message has the most nono words of any one message written by a particular user, or by anyone on the server
+    if num_nono_words_in_message > nono_dict_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
+        nono_dict_by_member[message.guild.id][message.author.id]['filthiest_message'] = message
+    if num_nono_words_in_message >  nono_dict_by_server[message.guild.id]['filthiest_message_count']:
+        nono_dict_by_server[message.guild.id]['filthiest_message'] = message
+
 
 # Comb through channel messages after bot is added to it
 async def load_channel(text_channel: discord.TextChannel):
@@ -101,40 +88,16 @@ async def load_channel(text_channel: discord.TextChannel):
 
 # Load all words and members currently on the server, add it to the guild dict
 async def load_server(guild: discord.Guild):
+    # Add guild_id to the top level of both dicts
+    # Add 'filthiest_message_count' field to by_server, to hold the number of nono words in the message that has the most
     if guild.id not in nono_dict_by_server:
-        nono_dict_by_server[guild.id] = {}
+        nono_dict_by_member[guild.id] = {}
+        nono_dict_by_server[guild.id] = {'filthiest_message_count' : 0}
     print('Inserting all members on ' + guild.name + ' into dicts!') 
     logger.info('Inserting all members on ' + guild.name + ' into dicts!') 
     for text_channel in guild.text_channels:
         await load_channel(text_channel)
     print("Done loading server: " + guild.name)
-
-
-
-
-
-
-
-
-
-
-
-        # print("scanning ", text_channel.name)
-        # if bot.user in text_channel.members: # Check that bot has access to this channel
-        #     async for message in text_channel.history(limit=None):
-        #         #strip out punctutation
-        #         message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
-        #         message_list = message_string.lower().split()
-        #         # Count nono words in messages, add to server and member counts
-        #         for word in nono_list:
-        #             if word in nono_dict_by_member[message.author.id]:
-        #                 nono_dict_by_member[message.author.id][word].update(message_list, message_list, message.jump_url)
-        #             else:
-        #                 nono_dict_by_member[message.author.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)
-        #             if word in nono_dict_by_server[guild.id]:
-        #                 nono_dict_by_server[guild.id][word].update(message_list, message_list, message.jump_url)
-        #             else:
-        #                 nono_dict_by_server[guild.id][word] = NoNo_Word(message_list, message_list.count(word), message.jump_url)     
 
 
 # What happens when the bot is fully connected and online
@@ -239,9 +202,6 @@ def build_member_table(offender_id: int):
 
 # Build a table for an entire server given a guild/server id
 def build_server_table(server_id: int):
-    # Return None if dict is empty
-    if not nono_dict_by_server:
-        return None
     # Return None if nested dict for server id is empty
     if not nono_dict_by_server[server_id]:
         return None
