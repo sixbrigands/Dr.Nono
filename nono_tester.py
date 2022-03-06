@@ -73,7 +73,7 @@ async def load_message(message):
             if word in nono_dict_by_server[message.guild.id]:
                 nono_dict_by_server[message.guild.id][word].update(message_list, message.jump_url)
             else:
-                nono_dict_by_server[message.guild.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
+                nono_dict_by_server[message.guild.id][word] = NoNo_Word(word, word_count, message.jump_url)
     # Check if this message has the most nono words of any one message written by a particular user, or by anyone on the server
     if num_nono_words_in_message > 0:
         if num_nono_words_in_message > superlatives_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
@@ -90,7 +90,7 @@ async def load_channel(text_channel: discord.TextChannel):
     print('Inserting ' + text_channel.name + ' into dicts!') 
     logger.info('Inserting text channel: ' + text_channel.name + ' into dicts!')
     if bot.user in text_channel.members: # Check that bot has access to this channel
-        async for message in text_channel.history(limit=50):
+        async for message in text_channel.history(limit=None):
             await load_message(message)
         print("Done loading channel: " + text_channel.name)    
 
@@ -200,13 +200,13 @@ def build_member_table(server_id: int, offender_id: int):
         if nono_word.count > 0:
             no_nono_words_found = False
             # Caculate the percentage of utterances over the user alone, and over the entire server
-            serverwide_percentage = str(round(nono_word.count / nono_dict_by_server[server_id][word].count, 2)) + "%"
+            serverwide_percentage = str(round(nono_word.count / nono_dict_by_server[server_id][word].count * 100, 2)) + "%"
             table_body_list.append([word, nono_word.count, serverwide_percentage])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return None
     nono_table = t2a(
-            header=["NoNo_Word", "Utterances", "Serverwide Percentage"],
+            header=["NoNo_Word", "Utterances", "Serverwide_Percentage"],
             body=table_body_list
             ) 
     return nono_table
@@ -239,9 +239,6 @@ def build_server_table(server_id: int):
 # TODO: Look at compairing two members
 @bot.command()
 async def test(ctx, offender=None):
-    print("command invoked")
-    print(offender)
-    print(type(offender))
     bot_id = int(bot.user.id)
     nono_table = None
     # Who's nono words am I listing? Without an argument, default to whoever made the command
