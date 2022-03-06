@@ -271,11 +271,11 @@ def build_server_table(server_id: int):
             server_percentage = str(round(nono_word.count / server_total * 100, 2)) + "%"
             if word == superlatives_by_server[server_id]['favorite_nono_word']:
                 word = number_one(word)
-            table_body_list.append([word, nono_word.count], server_percentage)
+            table_body_list.append([word, nono_word.count, server_percentage])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return -1
-    footer = [bold("Totals:"), server_total, "100.0%"]
+    footer = ["Totals:", server_total, "100.0%"]
     nono_table = t2a(
             header=["NoNo_Word", "Utterances", "Serverwide"],
             body=table_body_list,
