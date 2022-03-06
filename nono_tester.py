@@ -310,7 +310,7 @@ async def worst(ctx, offender=None):
         entire_server = True
     else:
         try: 
-            offender = get_user_id_from_mention(offender)
+            offender = ctx.guild.get_member(get_user_id_from_mention(offender))
             if offender == None:
                 raise Exception("Offender not found")
         except Exception as e:
@@ -320,11 +320,17 @@ async def worst(ctx, offender=None):
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
             return   
     if entire_server:
+        if 'filthiest_message' not in superlatives_by_server[ctx.guild.id]:
+            await ctx.channel.send("This.. this is impossible... " + bold(ctx.guild.name) +" has no history of nono words!")
+            return
         message = superlatives_by_server[ctx.guild.id]['filthiest_message']
-        prefix = 'This is the most vile message ever posted on ' + ctx.guild.name + '\n'
+        prefix = 'Worst message posted on ' + ctx.guild.name + ':\n'
     else:
+        if offender.id not in superlatives_by_member[ctx.guild.id]:
+            await ctx.channel.send("I can't believe it. " + bold(get_name(offender)) +" has never said a NoNo word!")
+            return
         message = superlatives_by_member[offender.guild.id][offender.id]['filthiest_message']
-        prefix = get_name(offender) + ", this is the filthiest message you've posted here...\n"
+        prefix = get_name(offender) + "'s worst message:\n"
     #message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
     message_word_list = message.content.split()
     highlighted_message = "> "
