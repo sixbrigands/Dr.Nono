@@ -306,6 +306,9 @@ async def worst(ctx, offender=None):
     prefix = ''
     if offender == None:
         offender = ctx.author
+    elif bot.user.id == get_user_id_from_mention(offender):
+        await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
+        return
     elif offender == "all":
         entire_server = True
     else:
