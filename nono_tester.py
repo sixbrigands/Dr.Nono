@@ -193,6 +193,9 @@ def build_member_table(server_id: int, offender_id: int):
     # Return None if dict is empty
     if not nono_dict_by_member[server_id]:
         return None
+    # If the offender isn't in the member dict, they haven't uttered a nono word
+    if offender_id not in nono_dict_by_member[server_id]:
+        return -1
     no_nono_words_found = True
     table_body_list = []
     # Loop through dict with word itself and the nono_word object
@@ -204,7 +207,7 @@ def build_member_table(server_id: int, offender_id: int):
             table_body_list.append([word, nono_word.count, serverwide_percentage])
     # Return None if dict has no nono words
     if no_nono_words_found:
-        return None
+        return -1
     nono_table = t2a(
             header=["NoNo_Word", "Utterances", "Serverwide_Percentage"],
             body=table_body_list
@@ -226,7 +229,7 @@ def build_server_table(server_id: int):
             table_body_list.append([word, nono_word.count])
     # Return None if dict has no nono words
     if no_nono_words_found:
-        return None
+        return -1
     nono_table = t2a(
             header=["NoNo_Word", "Utterances"],
             body=table_body_list
@@ -252,45 +255,49 @@ async def test(ctx, offender=None):
     # If arg is @everyone, build a table server
     elif offender == 'all':
         nono_table = build_server_table(ctx.guild.id)
+        # If the entire server has no documented nono words... IDK dude just give up
+        if nono_table == -1:
+            logger.debug("The entire server known as: " + ctx.guild.name + " has said no NoNo words.")
+            await ctx.channel.send("This.. this is impossible... " + bold(ctx.guild.name) +" has no history of nono words!")
+            return
     # If arg provided, get the user from the user_id
     else:
         try:
             offender = ctx.guild.get_member(get_user_id_from_mention(offender)) # This returns a member object with nickname
             if offender == None:
                 Raise: Exception("Offender not found")
-            nono_table = build_member_table(offender.guild.id, offender.id)
+            nono_table = build_member_table(offender.guild.id, offender.id)    
+            # If user has said no NoNo words, bail out
+            if nono_table == -1:
+                logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
+                await ctx.channel.send("I can't believe it. " + bold(get_name(offender)) +" has never said a NoNo word!")
+                return
+
         except Exception as e:
             print(e)
             logger.debug("I can't find this offender:")
             logger.debug(offender)
             await ctx.channel.send("I couldn't find that user, " + get_name(ctx.author) + ", try again.")
             return
-
-
-
     
-    # If the entire server has no documented nono words... IDK dude just give up
-    if nono_table == None and offender == 'all':
-        logger.debug("The entire server known as: " + ctx.guild.name + " has said no NoNo words.")
-        await ctx.channel.send("This.. this is impossible... " + bold(ctx.guild.name) +" has no history of nono words!")
-        return
-    # If user has said no NoNo words, bail out
-    if nono_table == None:
-        logger.debug("User: " + get_name(offender) + " has said no NoNo words.")
-        await ctx.channel.send("I can't believe it. " + bold(get_name(offender)) +" has never said a NoNo word!")
-        return
-
+    
     # Send picture and nono_word table to channel
     with open('private/nono.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
-
-
     # print nono table here:
     nono_string = discord.Embed(title = nono_prefix(offender, ctx), description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
 
+# Compare two members, or another member and the author
+@bot.command()
+async def compare(ctx, offender=None):
+    pass
 
+# Show the worst message a user has posted, in terms of nono words
+@bot.command()
+async def worst(ctx, offender=None):
+    pass
 
 # Is a user message a greeting?
 def is_greeting(message_string):
