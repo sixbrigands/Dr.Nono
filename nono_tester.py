@@ -81,8 +81,10 @@ async def load_message(message):
     if num_nono_words_in_message > 0:
         if num_nono_words_in_message > superlatives_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
             superlatives_by_member[message.guild.id][message.author.id]['filthiest_message'] = message
+            superlatives_by_member[message.guild.id][message.author.id]['filthiest_message_count'] = num_nono_words_in_message
         if num_nono_words_in_message > superlatives_by_server[message.guild.id]['filthiest_message_count']:
             superlatives_by_server[message.guild.id]['filthiest_message'] = message
+            superlatives_by_server[message.guild.id]['filthiest_message_count'] = num_nono_words_in_message
 
 
 # Comb through channel messages after bot is added to it
