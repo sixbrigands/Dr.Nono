@@ -293,11 +293,6 @@ async def test(ctx, offender=None):
     nono_string = discord.Embed(title = nono_prefix(offender, ctx), description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
 
-# Compare two members, or another member and the author
-@bot.command()
-async def compare(ctx, offender=None):
-    pass
-
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
 async def worst(ctx, offender=None):
@@ -348,6 +343,14 @@ async def worst(ctx, offender=None):
     suffix = hyperlink(suffix, message.jump_url)
     embed = discord.Embed(title = prefix, description = highlighted_message + "\n" + suffix)
     await ctx.channel.send(embed = embed)
+
+# Show the worst message a user has posted, in terms of nono words
+@bot.command()
+async def compare(ctx, offender1 = -1, offender2 = None):
+    # Send picture and nono_word table to channel
+    with open('private/compare.gif', 'rb') as f:
+        nono_gif = discord.File(f)
+        await ctx.channel.send(file=nono_gif) 
 
 # Is a user message a greeting?
 def is_greeting(message_string):
@@ -408,7 +411,7 @@ async def on_message(message): #called when bot has recieves a message
     # Respond to mentions of bot
     if str(bot.user.id) in message.content:
         #help
-        if 'help' in message_string_clean:
+        if 'help' or 'who' or 'command' in message_string_clean:
             logger.info(author + "asked for help.")
             greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
             + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```")
@@ -437,11 +440,6 @@ with open("private/secret.json", "r") as file:
 # Start the bot
 bot.run(TOKEN)
 
-
-#TODO Consider adding 'jump links' somewhere to give an example of a nono_word
-#https://stackoverflow.com/questions/64527464/clickable-link-inside-message-discord-py
-#These can be embedded in messages.. but only within embeds
-#https://stackoverflow.com/questions/63863871/discord-py-how-to-go-through-channel-history-and-search-for-a-specific-message
 
 #TODO put starts or number 1's around someone's top nono word
 #TODO make a nono word object to hold the word, count, link, ratio, etc
