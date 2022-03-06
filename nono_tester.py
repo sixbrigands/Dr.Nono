@@ -5,7 +5,7 @@ import json
 import random
 from discord.utils import get
 from discord.ext import commands
-from table2ascii import table2ascii as t2a
+from table2ascii import PresetStyle, table2ascii as t2a
 from collections import OrderedDict
 import logging
 from nono_word import NoNo_Word
@@ -28,7 +28,7 @@ bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=
 
 # Guild_id{Members_id{word: NoNo_word}
 nono_dict_by_member = {}
-# Guild_id{NoNo_Words{}}
+# Guild_id{word: NoNo_word}
 nono_dict_by_server = {}
 
 # This dicts how the fun superlatives like 'filthiest_message', structured the same as the nono_dicts
@@ -167,6 +167,10 @@ def code_block(string):
     return "```" + string + "```"
 def hyperlink(string, link):
     return "[" + string + "](" + link + ")"
+def trophy(string):
+    return '🏆 ' + string + ' 🏆'
+def number_one(string):
+    return '#1 ' + string + ' #1'
 
 # Get member object from <@username> string
 def get_user_id_from_mention(mention_string):
@@ -183,21 +187,28 @@ def get_user_id_from_mention(mention_string):
 # Offender can be a member object or 'all'
 # Offender2 is only used for comparisons
 def nono_prefix(ctx, offender1: discord.Member, offender2: discord.Member = None):
-    # Different prefix if offender is an entire server
-    server = bold(ctx.guild.name)
-    server_nono_prefixes = [
-        server + ", look upon your sins...",
-        "What a filthy place this is...",
-        server + ", never have I seen a more wretched hive of scum and profanity",
-        "This is clearly NOT a Christrian Minecraft server",
-        "Shame on you all.",
-        "I suppose I should have expected this. This is " + server + " after all"
-    ]
-    if offender == 'all':
+    # If the offender is an entire server:
+    if offender1 == 'all':
+        server = bold(ctx.guild.name)
+        server_nono_prefixes = [
+            server + ", look upon your sins...",
+            "What a filthy place this is...",
+            server + ", never have I seen a more wretched hive of scum and profanity",
+            "This is clearly NOT a Christrian Minecraft server",
+            "Shame on you all.",
+            "I suppose I should have expected this. This is " + server + " after all"
+        ]
         return " \n \n" + random.choice(server_nono_prefixes) + " \n"
-    elif offender
-
-    # IF offender is a member
+    # If we're comparing two offenders:
+    elif offender2 != None:
+        offender1 = bold(get_name(offender1))
+        offender2 = bold(get_name(offender2))
+        compare_prefixes = [
+            offender1 + " vs  " + offender2,
+            "Let's compare " + offender1 + " and " + "offender2"
+        ]
+        return " \n \n" + random.choice(compare_prefixes) + " \n"   
+    # Finally, if we're just doing a list for one member:
     offender1 = bold(get_name(offender1))
     nono_prefixes = [
         "Be it known that the criminal, " + offender1 + ", has committed the following offenses:",
@@ -220,8 +231,8 @@ def build_member_table(server_id: int, offender_id: int):
         return -1
     no_nono_words_found = True
     table_body_list = []
-    member_total = superlatives_by_member[server_id]['total_nono_words']
-    server_total = superlatives_by_server['total_nono_words']
+    member_total = superlatives_by_member[server_id][offender_id]['total_nono_words']
+    server_total = superlatives_by_server[server_id]['total_nono_words']
     # Loop through dict with word itself and the nono_word object
     for word, nono_word in nono_dict_by_member[server_id][offender_id].items():
         if nono_word.count > 0:
@@ -229,17 +240,19 @@ def build_member_table(server_id: int, offender_id: int):
             # Caculate the percentage of utterances over the user alone, and over the entire server
             serverwide_percentage = str(round(nono_word.count / nono_dict_by_server[server_id][word].count * 100, 2)) + "%"
             personal_percentage = str(round(nono_word.count / member_total * 100, 2)) + "%"
+            if word == superlatives_by_member[server_id][offender_id]['favorite_nono_word']:
+                word = number_one(word)
             table_body_list.append([word, nono_word.count, personal_percentage, serverwide_percentage])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return -1
     total_serverwide_percentage = str(round(member_total/ server_total * 100, 2)) + "%"
-    footer = [bold("Totals:"), member_total, "100.0%", total_serverwide_percentage]
+    footer = ["Totals:", member_total, "100.0%", total_serverwide_percentage]
     nono_table = t2a(
             header=["NoNo_Word", "Utterances", "Personal", "Serverwide"],
             body=table_body_list,
             footer = footer,
-            style='thin_thick'
+            style = PresetStyle.thin_thick
             ) 
     return nono_table
 
@@ -250,25 +263,31 @@ def build_server_table(server_id: int):
         return -1
     no_nono_words_found = True
     table_body_list = []
+    server_total = superlatives_by_server[server_id]['total_nono_words']
     # Loop through dict with word itself and the nono_word object
     for word, nono_word in nono_dict_by_server[server_id].items():
         if nono_word.count > 0:
             no_nono_words_found = False
-            # Embed a link to a random message with the nono word
-            table_body_list.append([word, nono_word.count])
+            server_percentage = str(round(nono_word.count / server_total * 100, 2)) + "%"
+            if word == superlatives_by_server[server_id]['favorite_nono_word']:
+                word = number_one(word)
+            table_body_list.append([word, nono_word.count], server_percentage)
     # Return None if dict has no nono words
     if no_nono_words_found:
         return -1
+    footer = [bold("Totals:"), server_total, "100.0%"]
     nono_table = t2a(
-            header=["NoNo_Word", "Utterances"],
-            body=table_body_list
+            header=["NoNo_Word", "Utterances", "Serverwide"],
+            body=table_body_list,
+            footer = footer,
+            style = PresetStyle.thin_thick
             ) 
     return nono_table
 
 # Provide a list of all nono words a user has said with a fun picture
 # TODO: When provided with @everyone, print the server stats
 # TODO: look at listing swear count ratio against average
-# TODO: Look at compairing two members
+# TODO: Look at comparing two members
 @bot.command()
 async def test(ctx, offender=None):
     bot_id = int(bot.user.id)
@@ -314,7 +333,7 @@ async def test(ctx, offender=None):
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
     # print nono table here:
-    nono_string = discord.Embed(title = nono_prefix(offender, ctx), description = code_block(nono_table))
+    nono_string = discord.Embed(title = nono_prefix(ctx, offender), description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
 
 # Show the worst message a user has posted, in terms of nono words
@@ -403,7 +422,7 @@ async def compare(ctx, offender1 = -1, offender2 = None):
             return  
 
 
-    for word in nono_list:
+    #for word in nono_list:
 
     
     
@@ -414,7 +433,7 @@ async def compare(ctx, offender1 = -1, offender2 = None):
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
 
-    nono_string = discord.Embed(title = nono_prefix(offender, ctx), description = code_block(nono_table))
+    nono_string = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
 
 # Is a user message a greeting?
@@ -478,6 +497,7 @@ async def on_message(message): #called when bot has recieves a message
         #help
         if 'help' or 'who' or 'command' in message_string_clean:
             logger.info(author + "asked for help.")
+            print(author + "asked for help.")
             greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
             + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```")
             await message.channel.send(embed=greeting_string)
@@ -507,4 +527,3 @@ bot.run(TOKEN)
 
 
 #TODO put starts or number 1's around someone's top nono word
-#TODO make a nono word object to hold the word, count, link, ratio, etc
