@@ -495,9 +495,10 @@ async def on_message(message): #called when bot has recieves a message
     # Respond to mentions of bot
     if str(bot.user.id) in message.content:
         #help
-        if 'help' or 'who' or 'command' in message_string_clean:
-            logger.info(author + "asked for help.")
-            print(author + "asked for help.")
+        if 'help' in message_string_clean or 'who' in message_string_clean or 'command' in message_string_clean:
+            print(message_string_clean)
+            logger.info(author + " asked for help.")
+            print(author + " asked for help.")
             greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
             + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```")
             await message.channel.send(embed=greeting_string)
