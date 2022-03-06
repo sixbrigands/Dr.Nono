@@ -30,6 +30,10 @@ bot = commands.Bot(command_prefix='~', intents=intents, chunk_guilds_at_startup=
 nono_dict_by_member = {}
 # Guild_id{NoNo_Words{}}
 nono_dict_by_server = {}
+
+# This dicts how the fun superlatives like 'filthiest_message', structured the same as the nono_dicts
+superlatives_by_member = {}
+superlatives_by_server = {}
 # Build list of bad words for late dict insertion
 nono_list = []
 with open('private/bad_words.txt') as f:
@@ -40,6 +44,8 @@ with open('private/bad_words.txt') as f:
 # Scan a single message and update dicts with nono_words:
 # TODO: I can't have the table be in code block and have the jump links working too. Maybe I just save the naughtiest message at the end  and link to that
 async def load_message(message):
+    if bot.user.id == message.author.id:
+        return
     #strip out punctutation
     message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
     message_list = message_string.lower().split()
@@ -51,15 +57,16 @@ async def load_message(message):
         if word_count > 0:
             num_nono_words_in_message += word_count
             # Insert into nono_words_by_member
-            if message.author.id in nono_dict_by_member[message.guild.id] and word in nono_dict_by_member[nono_dict_by_member][message.guild.id][message.author.id]:
+            if message.author.id in nono_dict_by_member[message.guild.id] and word in nono_dict_by_member[message.guild.id][message.author.id]:
                 nono_dict_by_member[message.guild.id][message.author.id][word].update(message_list, message.jump_url)
             elif message.author.id in nono_dict_by_member[message.guild.id]:
                 nono_dict_by_member[message.guild.id][message.author.id][word] = NoNo_Word(word, word_count, message.jump_url)
-            # If the user ID in not present, add it and init the 'filtiest message_count'
+            # If the user ID in not present, add it 
             else:
-                nono_dict_by_member[message.guild.id][message.author.id] = {
-                    word: NoNo_Word(word, word_count, message.jump_url),
-                    'filthiest_message_count': 0
+                nono_dict_by_member[message.guild.id][message.author.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
+                superlatives_by_member[message.guild.id][message.author.id] = {
+                    "filthiest_message_count": word_count,
+                    "filthiest_message": message
                     }
             # Insert into nono_words_by_server
             # We assume the by_server dict has all guild names added during load_server
@@ -68,10 +75,11 @@ async def load_message(message):
             else:
                 nono_dict_by_server[message.guild.id] = {word: NoNo_Word(word, word_count, message.jump_url)}
     # Check if this message has the most nono words of any one message written by a particular user, or by anyone on the server
-    if num_nono_words_in_message > nono_dict_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
-        nono_dict_by_member[message.guild.id][message.author.id]['filthiest_message'] = message
-    if num_nono_words_in_message >  nono_dict_by_server[message.guild.id]['filthiest_message_count']:
-        nono_dict_by_server[message.guild.id]['filthiest_message'] = message
+    print(superlatives_by_member)
+    if num_nono_words_in_message > superlatives_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
+        superlatives_by_member[message.guild.id][message.author.id]['filthiest_message'] = message
+    if num_nono_words_in_message > superlatives_by_server[message.guild.id]['filthiest_message_count']:
+        superlatives_by_server[message.guild.id]['filthiest_message'] = message
 
 
 # Comb through channel messages after bot is added to it
@@ -89,10 +97,12 @@ async def load_channel(text_channel: discord.TextChannel):
 # Load all words and members currently on the server, add it to the guild dict
 async def load_server(guild: discord.Guild):
     # Add guild_id to the top level of both dicts
-    # Add 'filthiest_message_count' field to by_server, to hold the number of nono words in the message that has the most
+    # Also init superlative dicts
     if guild.id not in nono_dict_by_server:
         nono_dict_by_member[guild.id] = {}
-        nono_dict_by_server[guild.id] = {'filthiest_message_count' : 0}
+        nono_dict_by_server[guild.id] = {}
+        superlatives_by_member[guild.id] = {}
+        superlatives_by_server[guild.id] = {'filthiest_message_count': 0}
     print('Inserting all members on ' + guild.name + ' into dicts!') 
     logger.info('Inserting all members on ' + guild.name + ' into dicts!') 
     for text_channel in guild.text_channels:
@@ -117,7 +127,7 @@ async def on_guild_join(guild):
 #get author's real name, or Discord handle otherwise
 def get_name(author):
     try:
-        if ("(" in author.display_name): #check if nickname has real name, e.g. Username (Name)
+        if ("(" in author.display_name and ")" in author.display_name): #check if nickname has real name, e.g. Username (Name)
             open_paren = author.display_name.index('(') + 1
             close_paren = author.display_name.index(')')
             return author.display_name[open_paren:close_paren]
@@ -179,23 +189,24 @@ def nono_prefix(offender, ctx):
     return " \n \n" + random.choice(nono_prefixes) + " \n"
 
 # Build table by user giver a user id number
-def build_member_table(offender_id: int):
+def build_member_table(server_id: int, offender_id: int):
     # Return None if dict is empty
-    if not nono_dict_by_member:
+    if not nono_dict_by_member[server_id]:
         return None
     no_nono_words_found = True
     table_body_list = []
     # Loop through dict with word itself and the nono_word object
-    for word, nono_word in nono_dict_by_member[offender_id].items():
+    for word, nono_word in nono_dict_by_member[server_id][offender_id].items():
         if nono_word.count > 0:
             no_nono_words_found = False
-            # Embed a link to a random message with the nono word
-            table_body_list.append([word, nono_word.count])
+            # Caculate the percentage of utterances over the user alone, and over the entire server
+            serverwide_percentage = str(round(nono_word.count / nono_dict_by_server[server_id][word].count, 2)) + "%"
+            table_body_list.append([word, nono_word.count, serverwide_percentage])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return None
     nono_table = t2a(
-            header=["NoNo_Word", "Utterances"],
+            header=["NoNo_Word", "Utterances", "Serverwide Percentage"],
             body=table_body_list
             ) 
     return nono_table
@@ -236,7 +247,7 @@ async def test(ctx, offender=None):
     # Who's nono words am I listing? Without an argument, default to whoever made the command
     if offender == None:
         offender = ctx.author
-        nono_table = build_member_table(offender.id)
+        nono_table = build_member_table(offender.guild.id, offender.id)
     # Dr. Nono can't be the offender!
     elif bot_id == get_user_id_from_mention(offender):
         await ctx.channel.send("Do not question Dr. Nono's character, " + get_name(ctx.author) + ".")
@@ -250,7 +261,7 @@ async def test(ctx, offender=None):
             offender = ctx.guild.get_member(get_user_id_from_mention(offender)) # This returns a member object with nickname
             if offender == None:
                 Raise: Exception("Offender not found")
-            nono_table = build_member_table(offender.id)
+            nono_table = build_member_table(offender.guild.id, offender.id)
         except Exception as e:
             print(e)
             logger.debug("I can't find this offender:")
