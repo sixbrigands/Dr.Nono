@@ -421,8 +421,19 @@ async def compare(ctx, offender1 = -1, offender2 = None):
             await ctx.channel.send("I couldn't find the second user, " + get_name(ctx.author) + ", try again.")
             return  
 
+    # Check if either offender has no nono words:
+    if offender1.id not in nono_dict_by_member[ctx.guild.id] and offender2.id not in nono_dict_by_member[ctx.guild.id]:
+        await ctx.channel.send("Both users have never said a NoNo word! It's a tie!")
+        return
+    elif offender1.id not in nono_dict_by_member[ctx.guild.id]:
+        await ctx.channel.send(get_name(offender1) + " has never said a NoNo word! " + get_name(offender2) + "wins by default.")
+        return
+    elif offender2.id not in nono_dict_by_member[ctx.guild.id]:
+        await ctx.channel.send(get_name(offender2) + " has never said a NoNo word! " + get_name(offender1) + "wins by default.")
+        return
 
-    #for word in nono_list:
+    for word in nono_list:
+
 
     
     
