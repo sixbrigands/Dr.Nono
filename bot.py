@@ -272,7 +272,7 @@ def build_member_table(server_id: int, offender_id: int):
     total_serverwide_percentage = str(round(member_total/ server_total * 100, 2)) + "%"
     footer = ["Totals:", member_total, "100.0%", total_serverwide_percentage]
     nono_table = t2a(
-            header=["NoNo_Word", "Utterances", "Personal", "Serverwide"],
+            header=["NoNo_Word", "#", "Personal", "Serverwide"],
             body=table_body_list,
             footer = footer,
             style = PresetStyle.thin_thick
@@ -300,7 +300,7 @@ def build_server_table(server_id: int):
         return -1
     footer = ["Totals:", server_total, "100.0%"]
     nono_table = t2a(
-            header=["NoNo_Word", "Utterances", "Serverwide"],
+            header=["NoNo_Word", "#", "Serverwide"],
             body=table_body_list,
             footer = footer,
             style = PresetStyle.thin_thick
