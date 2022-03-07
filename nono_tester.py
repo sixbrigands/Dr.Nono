@@ -45,7 +45,6 @@ with open('private/bad_words.txt') as f:
             nono_set.add(stripped_word)
 
 # Scan a single message and update dicts with nono_words:
-# TODO: I can't have the table be in code block and have the jump links working too. Maybe I just save the naughtiest message at the end  and link to that
 async def load_message(message):
     if bot.user.id == message.author.id:
         return
@@ -103,11 +102,19 @@ async def load_channel(text_channel: discord.TextChannel):
     if bot.user not in text_channel.members:
         print('I am not allowed to load channel: ' + text_channel.name + ' into dicts!')
         return
-    print('Inserting ' + text_channel.name + ' into dicts!') 
+    print('Inserting text channel: ' + text_channel.name + ' into dicts!') 
     logger.info('Inserting text channel: ' + text_channel.name + ' into dicts!')
     if bot.user in text_channel.members: # Check that bot has access to this channel
+        report_rate    = 500
+        report_counter = 0
+        report_total   = 0
         async for message in text_channel.history(limit=None):
             await load_message(message)
+            report_counter += 1
+            if report_counter >= report_rate:
+                report_total += report_counter
+                print(str(report_total) +" messages loaded so far for channel " + text_channel.name)
+                report_counter = 0
         print("Done loading channel: " + text_channel.name)    
 
 # Load all words and members currently on the server, add it to the guild dict
@@ -136,12 +143,22 @@ async def on_ready(): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
     for server in bot.guilds:
         await load_server(server)
+    print("DONE LOADING ALL SERVERS")
 
 # What happens when the bot joins a new server/guild
 @bot.event
 async def on_guild_join(guild):
     print("I joined the " + guild.name)
     await load_server(guild)
+
+
+# When Channel permissions change, and the bot is added, load that channel
+# Before = the channel previously, and After = current channel
+@bot.event
+async def on_guild_channel_update(before, after):
+    if bot.user not in before.members and bot.user in after.members:
+        print("Dr. NoNo has joined a new channel, " + after.name)
+        await load_channel(after)
 
 
 #get author's real name, or Discord handle otherwise
@@ -285,11 +302,8 @@ def build_server_table(server_id: int):
     return nono_table
 
 # Provide a list of all nono words a user has said with a fun picture
-# TODO: When provided with @everyone, print the server stats
-# TODO: look at listing swear count ratio against average
-# TODO: Look at comparing two members
 @bot.command()
-async def test(ctx, offender=None):
+async def list(ctx, offender=None):
     bot_id = int(bot.user.id)
     nono_table = None
     # Who's nono words am I listing? Without an argument, default to whoever made the command
@@ -394,8 +408,6 @@ async def worst(ctx, offender=None):
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
 async def compare(ctx, offender1 = None, offender2 = None):
-    print(offender1)
-    print(offender2)
     # What if user doesn't provide any args?
     if offender1 == None:
         await ctx.channel.send('Please specify at least one member. Type "~help compare" for details.')
@@ -632,5 +644,3 @@ with open("private/secret.json", "r") as file:
 
 # Start the bot
 bot.run(TOKEN)
-
-#TODO: swap test for list, clean up

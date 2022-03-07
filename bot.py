@@ -102,11 +102,19 @@ async def load_channel(text_channel: discord.TextChannel):
     if bot.user not in text_channel.members:
         print('I am not allowed to load channel: ' + text_channel.name + ' into dicts!')
         return
-    print('Inserting ' + text_channel.name + ' into dicts!') 
+    print('Inserting text channel: ' + text_channel.name + ' into dicts!') 
     logger.info('Inserting text channel: ' + text_channel.name + ' into dicts!')
     if bot.user in text_channel.members: # Check that bot has access to this channel
+        report_rate    = 500
+        report_counter = 0
+        report_total   = 0
         async for message in text_channel.history(limit=None):
             await load_message(message)
+            report_counter += 1
+            if report_counter >= report_rate:
+                report_total += report_counter
+                print(str(report_total) +" messages loaded so far for channel " + text_channel.name)
+                report_counter = 0
         print("Done loading channel: " + text_channel.name)    
 
 # Load all words and members currently on the server, add it to the guild dict
@@ -135,12 +143,21 @@ async def on_ready(): #on ready called when bot has finish logging in
     print(f'{bot.user.name} has connected to Discord!')
     for server in bot.guilds:
         await load_server(server)
+    print("DONE LOADING ALL SERVERS")
 
 # What happens when the bot joins a new server/guild
 @bot.event
 async def on_guild_join(guild):
     print("I joined the " + guild.name)
     await load_server(guild)
+
+# What happens when the bot joins a new channel
+@bot.event
+async def on_group_join(channel, user):
+    if user.id == bot.user.id:
+        print("Dr. NoNo has joined a new channel, " + channel.name):
+        load_channel(channel)
+
 
 
 #get author's real name, or Discord handle otherwise
