@@ -151,13 +151,14 @@ async def on_guild_join(guild):
     print("I joined the " + guild.name)
     await load_server(guild)
 
-# What happens when the bot joins a new channel
-@bot.event
-async def on_group_join(channel, user):
-    if user.id == bot.user.id:
-        print("Dr. NoNo has joined a new channel, " + channel.name):
-        load_channel(channel)
 
+# When Channel permissions change, and the bot is added, load that channel
+# Before = the channel previously, and After = current channel
+@bot.event
+async def on_guild_channel_update(before, after):
+    if bot.user not in before.members and bot.user in after.members:
+        print("Dr. NoNo has joined a new channel, " + after.name)
+        await load_channel(after)
 
 
 #get author's real name, or Discord handle otherwise
