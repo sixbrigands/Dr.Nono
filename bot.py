@@ -410,7 +410,7 @@ async def worst(ctx, offender=None):
 async def compare(ctx, offender1 = None, offender2 = None):
     # What if user doesn't provide any args?
     if offender1 == None:
-        await ctx.channel.send('Please specify at least one member. Type "~help compare" for details.')
+        await ctx.channel.send('Please specify at least one member. Type "~explain compare" for details.')
         return
     # Comparing to a user to themselves is pointless
     if offender1 == offender2:
