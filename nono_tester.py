@@ -80,12 +80,12 @@ async def load_message(message):
             else:
                 nono_dict_by_server[message.guild.id][word] = NoNo_Word(word, word_count, message.jump_url)
             # Update favorite nono word:
-            if word_count > superlatives_by_member[message.guild.id][message.author.id]['favorite_nono_word_count']:
+            if nono_dict_by_member[message.guild.id][message.author.id][word].count > superlatives_by_member[message.guild.id][message.author.id]['favorite_nono_word_count']:
                 superlatives_by_member[message.guild.id][message.author.id]['favorite_nono_word'] = word
-                superlatives_by_member[message.guild.id][message.author.id]['favorite_nono_word_count'] = word_count
-            if word_count > superlatives_by_server[message.guild.id]['favorite_nono_word_count']:
+                superlatives_by_member[message.guild.id][message.author.id]['favorite_nono_word_count'] = nono_dict_by_member[message.guild.id][message.author.id][word].count
+            if nono_dict_by_server[message.guild.id][word].count > superlatives_by_server[message.guild.id]['favorite_nono_word_count']:
                 superlatives_by_server[message.guild.id]['favorite_nono_word'] = word
-                superlatives_by_server[message.guild.id]['favorite_nono_word_count'] = word_count
+                superlatives_by_server[message.guild.id]['favorite_nono_word_count'] = nono_dict_by_server[message.guild.id][word].count
     # Check if this message has the most nono words of any one message written by a particular user, or by anyone on the server
     if num_nono_words_in_message > 0:
         if num_nono_words_in_message > superlatives_by_member[message.guild.id][message.author.id]['filthiest_message_count']:
