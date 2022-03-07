@@ -350,11 +350,12 @@ async def list(ctx, offender=None):
     # If embed is too large (max is 6000 char), write to text file and send to channel
     if len(embed) > 5999 or len(code_block(nono_table)) > 4095:
         print("Embed too large at " + str(len(embed)))
-        with open('list.txt', 'w+') as f:
+        with open('list.txt', 'w') as f:
             f.write(nono_table)
-            list_txt = discord.File(f)
-        await ctx.channel.send(nono_prefix(ctx, offender))
-        await ctx.channel.send(file=list_txt) 
+        with open('list.txt', 'r') as r:
+            list_txt = discord.File(r)
+            await ctx.channel.send(nono_prefix(ctx, offender))
+            await ctx.channel.send(file=list_txt) 
         return
     await ctx.channel.send(embed = embed)
 
@@ -416,9 +417,12 @@ async def worst(ctx, offender=None):
         print("Embed too large at " + str(len(embed)))  
         with open('worst.txt', 'w+') as f:
             f.write(message.content)
-            worst_txt = discord.File(f)
-        await ctx.channel.send(bold(prefix))
-        await ctx.channel.send(file=worst_txt)
+        with open('worst.txt', 'r') as r:
+            worst_txt = discord.File(r)
+            await ctx.channel.send(bold(prefix))
+            await ctx.channel.send(file=worst_txt)
+            suffix_embed = discord.Embed(description="\n" + suffix + "\n" + postfix)
+            await ctx.channel.send(embed=suffix_embed)
         return
     await ctx.channel.send(embed = embed)
 
@@ -543,10 +547,11 @@ async def compare(ctx, offender1 = None, offender2 = None):
         print("Embed too large at " + str(len(embed)))
         with open('compare.txt', 'w+') as f:
             f.write(nono_table)
-            compare_txt = discord.File(f)
-        await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
-        await ctx.channel.send(file=compare_txt)
-        await ctx.channel.send(winner_message)
+        with open('compare.txt', 'r') as r:
+            compare_txt = discord.File(r)
+            await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
+            await ctx.channel.send(file=compare_txt)
+            await ctx.channel.send(winner_message)
         return
     await ctx.channel.send(embed = embed)
     # Send a winner message to sum it all up
