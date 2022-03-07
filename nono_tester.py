@@ -546,7 +546,7 @@ async def on_message(message): #called when bot has recieves a message
         return
 
     message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ').lower()
-    print(message_string_clean)
+    print('message: ' + message.content)
     message_word_list = message.content.split()
     author = get_name(message.author)
     
@@ -588,6 +588,12 @@ async def on_message(message): #called when bot has recieves a message
             logger.info(author + "insulted me.")
             logger.info(message.content)
             await message.channel.send("That's not very nice, " + author + ". Lucky for you, I'm not programmed to feel emotion.")
+        elif "I visited Dylan's Github" in message.content:
+            logger.info(author + " activated the secret!")
+            print("secret")
+            with open('private/secret_nono.gif', 'rb') as f:
+                nono_gif = discord.File(f)
+                await message.channel.send(file=nono_gif) 
 
     # Scan the message for nono words and add them to the dicts
     await load_message(message)
@@ -602,5 +608,4 @@ with open("private/secret.json", "r") as file:
 # Start the bot
 bot.run(TOKEN)
 
-
-#TODO put starts or number 1's around someone's top nono word
+#TODO: Help command, swap test for list, clean up
