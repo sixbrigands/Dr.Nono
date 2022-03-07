@@ -49,11 +49,10 @@ async def load_message(message):
     if bot.user.id == message.author.id:
         return
     #strip out punctutation
-    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ' or c == '\n')
     message_list = message_string.lower().split()
     # Count nono words in messages, add to server and member counts, save message with most nono words in it
     num_nono_words_in_message = 0
-    most_nono_words_in_message = 0
     for word in nono_list:
         word_count = message_list.count(word)
         if word_count > 0:
@@ -349,7 +348,7 @@ async def list(ctx, offender=None):
     # print nono table here
     embed = discord.Embed(title = nono_prefix(ctx, offender), description = code_block(nono_table))
     # If embed is too large (max is 6000 char), write to text file and send to channel
-    if len(embed) > 5999 or len(code_block(nono_table) > 4095):
+    if len(embed) > 5999 or len(code_block(nono_table)) > 4095:
         print("Embed too large at " + str(len(embed)))
         with open('list.txt', 'w+') as f:
             f.write(nono_table)
@@ -402,7 +401,7 @@ async def worst(ctx, offender=None):
     message_word_list = message.content.split()
     highlighted_message = "> "
     for word in message_word_list:
-        clean_word = ''.join(c for c in word if c.isalpha() or c == ' ').lower()
+        clean_word = ''.join(c for c in word if c.isalpha() or c == ' ' or c == '\n').lower()
         if clean_word in nono_set:
             highlighted_message += " " + bold(word)
         else:
@@ -611,8 +610,8 @@ async def on_message(message): #called when bot has recieves a message
     if message.author == bot.user:
         return
 
-    message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ').lower()
-    print('message: ' + message.content)
+    message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ' or c == '\n').lower()
+    print('message: ' + message_string_clean)
     message_word_list = message.content.split()
     author = get_name(message.author)
     
@@ -621,7 +620,7 @@ async def on_message(message): #called when bot has recieves a message
         highlighted_message = "> "
         if ultimate_nono_word in message_string_clean.split() or (ultimate_nono_word + 's') in message_string_clean.split():
             for word in message_word_list:
-                clean_word = ''.join(c for c in word if c.isalpha() or c == ' ').lower()
+                clean_word = ''.join(c for c in word if c.isalpha() or c == ' ' or c == '\n').lower()
                 if clean_word == ultimate_nono_word or clean_word == (ultimate_nono_word + 's'):
                     highlighted_message += " " + bold(word)
                 else:
