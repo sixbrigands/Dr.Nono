@@ -346,8 +346,14 @@ async def list(ctx, offender=None):
     with open('private/nono.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
-    # print nono table here:
+    # print nono table here
     nono_string = discord.Embed(title = nono_prefix(ctx, offender), description = code_block(nono_table))
+    # If embed is too large (max is 6000 char), print outside of one
+    if len(nono_string) > 5900:
+        print("Embed too large at " + str(len(nono_string)))
+        await ctx.channel.send(nono_prefix(ctx, offender))
+        await ctx.channel.send(code_block(nono_table))
+        return
     await ctx.channel.send(embed = nono_string)
 
 # Show the worst message a user has posted, in terms of nono words
@@ -402,7 +408,13 @@ async def worst(ctx, offender=None):
     suffix = "~" + get_name(message.author) + ", " + message.created_at.strftime("%d%b%Y").upper()
     suffix = hyperlink(suffix, message.jump_url)
     postfix = str(num_nonos) + " NoNos"
-    embed = discord.Embed(title = prefix, description = highlighted_message + "\n" + suffix + "\n" + postfix)
+    description = highlighted_message + "\n" + suffix + "\n" + postfix
+    embed = discord.Embed(title = prefix, description = description)
+    if len(embed) > 5900:
+        print("Embed too large at " + str(len(embed)))
+        await ctx.channel.send(bold(prefix))
+        await ctx.channel.send(description)
+        return
     await ctx.channel.send(embed = embed)
 
 # Show the worst message a user has posted, in terms of nono words
@@ -410,7 +422,7 @@ async def worst(ctx, offender=None):
 async def compare(ctx, offender1 = None, offender2 = None):
     # What if user doesn't provide any args?
     if offender1 == None:
-        await ctx.channel.send('Please specify at least one member. Type "~help compare" for details.')
+        await ctx.channel.send('Please specify at least one member. Type "~explain compare" for details.')
         return
     # Comparing to a user to themselves is pointless
     if offender1 == offender2:
@@ -521,8 +533,14 @@ async def compare(ctx, offender1 = None, offender2 = None):
     with open('private/compare.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
-    nono_string = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
-    await ctx.channel.send(embed = nono_string)
+    embed = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
+    if len(embed) > 5900:
+        print("Embed too large at " + str(len(embed)))
+        await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
+        await ctx.channel.send(code_block(nono_table))
+        await ctx.channel.send(winner_message)
+        return
+    await ctx.channel.send(embed = embed)
     # Send a winner message to sum it all up
     await ctx.channel.send(winner_message)
 
