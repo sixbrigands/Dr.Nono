@@ -205,7 +205,7 @@ def nono_prefix(ctx, offender1: discord.Member, offender2: discord.Member = None
         offender2 = bold(get_name(offender2))
         compare_prefixes = [
             offender1 + " vs  " + offender2,
-            "Let's compare " + offender1 + " and " + "offender2"
+            "Let's compare " + offender1 + " and " + offender2
         ]
         return " \n \n" + random.choice(compare_prefixes) + " \n"   
     # Finally, if we're just doing a list for one member:
@@ -445,12 +445,12 @@ async def compare(ctx, offender1 = None, offender2 = None):
         await ctx.channel.send(get_name(offender2) + " has never said a NoNo word! " + get_name(offender1) + "wins by default.")
         return
 
+    offender1_dict = nono_dict_by_member[ctx.guild.id][offender1.id]
+    offender2_dict = nono_dict_by_member[ctx.guild.id][offender2.id]
+    offender1_total = superlatives_by_member[ctx.guild.id][offender1.id]['total_nono_words']
+    offender2_total = superlatives_by_member[ctx.guild.id][offender2.id]['total_nono_words']
+    table_body_list = []
     for word in nono_list:
-        offender1_dict = nono_dict_by_member[ctx.guild.id][offender1.id]
-        offender2_dict = nono_dict_by_member[ctx.guild.id][offender2.id]
-        offender1_total = superlatives_by_member[ctx.guild.id][offender1.id]['total_nono_words']
-        offender2_total = superlatives_by_member[ctx.guild.id][offender2.id]['total_nono_words']
-        table_body_list = []
         if word in offender1_dict or word in offender2_dict:
             word_count_1 = 0
             word_count_2 = 0
@@ -464,18 +464,18 @@ async def compare(ctx, offender1 = None, offender2 = None):
             elif word_count_2 > word_count_1:
                 winner = get_name(offender2)
             table_body_list.append([word, word_count_1, word_count_2, winner])
-        overall_winner = 'Tie'
-        if offender1_total > offender2_total:
-            overall_winner = get_name(offender1)
-        elif offender2_total > offender1_total:
-            overall_winner = get_name(offender2)
-        footer = ["Totals:", offender1_total, offender2_total, overall_winner]
-        nono_table = t2a(
-                header=["NoNo_Word", get_name(offender1), get_name(offender2), "Winner"],
-                body=table_body_list,
-                footer = footer,
-                style = PresetStyle.thin_thick
-                ) 
+    overall_winner = 'Tie'
+    if offender1_total > offender2_total:
+        overall_winner = get_name(offender1)
+    elif offender2_total > offender1_total:
+        overall_winner = get_name(offender2)
+    footer = ["Totals:", offender1_total, offender2_total, overall_winner]
+    nono_table = t2a(
+            header=["NoNo_Word", get_name(offender1), get_name(offender2), "Winner"],
+            body=table_body_list,
+            footer = footer,
+            style = PresetStyle.thin_thick
+            ) 
 
 
     
