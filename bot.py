@@ -160,6 +160,7 @@ async def on_guild_channel_update(before, after):
 
 #TODO Fill this is for role updates that give access to new channels
 # Before = the member object before, and After = current memeber object
+# Will likely need a "channels I have access to" dict
 async def on_member_update(before, after):
     # Bail out if this isn't the bot
     if before.id != bot.user.id:
