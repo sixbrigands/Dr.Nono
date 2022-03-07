@@ -191,9 +191,9 @@ def code_block(string):
 def hyperlink(string, link):
     return "[" + string + "](" + link + ")"
 def trophy(string):
-    return '🏆' + string + '🏆'
+    return '🏆 ' + string + ' 🏆'
 def number_one(string):
-    return '#1 ' + string + ' #1'
+    return string + ' #1'
 
 # Get member object from <@username> string
 def get_user_id_from_mention(mention_string):
@@ -262,20 +262,21 @@ def build_member_table(server_id: int, offender_id: int):
             no_nono_words_found = False
             # Caculate the percentage of utterances over the user alone, and over the entire server
             serverwide_percentage = str(round(nono_word.count / nono_dict_by_server[server_id][word].count * 100, 2)) + "%"
-            personal_percentage = str(round(nono_word.count / member_total * 100, 2)) + "%"
+            # Leave out personal percentage for now to save space
+            #personal_percentage = str(round(nono_word.count / member_total * 100, 2)) + "%"
             if word == superlatives_by_member[server_id][offender_id]['favorite_nono_word']:
                 word = number_one(word)
-            table_body_list.append([word, nono_word.count, personal_percentage, serverwide_percentage])
+            table_body_list.append([word, nono_word.count, serverwide_percentage])
     # Return None if dict has no nono words
     if no_nono_words_found:
         return -1
     total_serverwide_percentage = str(round(member_total/ server_total * 100, 2)) + "%"
-    footer = ["Totals:", member_total, "100.0%", total_serverwide_percentage]
+    footer = ["Totals:", member_total, total_serverwide_percentage]
     nono_table = t2a(
-            header=["NoNo_Word", "#", "Personal", "Serverwide"],
+            header=["NoNo Word", "#", "Server%"],
             body=table_body_list,
             footer = footer,
-            style = PresetStyle.thin_thick
+            style = PresetStyle.minimalist
             ) 
     return nono_table
 
@@ -300,11 +301,11 @@ def build_server_table(server_id: int):
         return -1
     footer = ["Totals:", server_total, "100.0%"]
     nono_table = t2a(
-            header=["NoNo_Word", "#", "Serverwide"],
+            header=["NoNo Word", "#", "%"],
             body=table_body_list,
             footer = footer,
-            style = PresetStyle.thin_thick
-            ) 
+            style = PresetStyle.minimalist
+    )
     return nono_table
 
 # Provide a list of all nono words a user has said with a fun picture
@@ -509,21 +510,27 @@ async def compare(ctx, offender1 = None, offender2 = None):
                 offender2_vocab += 1
                 word_count_2 = offender2_dict[word].count
             if word_count_1 > word_count_2:
-                winner = get_name(offender1)
+                winner = '<---'
             elif word_count_2 > word_count_1:
-                winner = get_name(offender2)
-            table_body_list.append([word, word_count_1, word_count_2, winner])
+                winner = '--->'
+            table_body_list.append([word, word_count_1, winner, word_count_2])
     overall_winner = 'Tie'
     if offender1_total > offender2_total:
-        overall_winner = get_name(offender1)
+        overall_winner = '<---'
     elif offender2_total > offender1_total:
-        overall_winner = get_name(offender2)
-    footer = ["Totals:", offender1_total, offender2_total, overall_winner]
+        overall_winner = '--->'
+    footer = ["Totals:", offender1_total, overall_winner, offender2_total]
+    abbreviated_name1 = get_name(offender1)
+    abbreviated_name2 = get_name(offender2)
+    if len(get_name(offender1)) > 8:
+        abbreviated_name1 = get_name(offender1)[:8] + "-"
+    if len(get_name(offender2)) > 8:
+        abbreviated_name2 = get_name(offender2)[:8] + "-"
     nono_table = t2a(
-            header=["NoNo_Word", get_name(offender1), get_name(offender2), "Winner"],
+            header=["NoNo_Word", abbreviated_name1, "Winner", abbreviated_name2],
             body=table_body_list,
             footer = footer,
-            style = PresetStyle.thin_thick
+            style = PresetStyle.minimalist
             )
     #Craft a winner message:
     winner_message = ''
@@ -549,20 +556,19 @@ async def compare(ctx, offender1 = None, offender2 = None):
     with open('private/compare.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
-    embed = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
-    if len(embed) > 5999 or len(code_block(nono_table)) > 4095:
-        print("Embed too large at " + str(len(embed)))
-        with open('compare.txt', 'w+') as f:
-            f.write(nono_table)
-        with open('compare.txt', 'r') as r:
-            compare_txt = discord.File(r)
-            await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
-            await ctx.channel.send(file=compare_txt)
-            await ctx.channel.send(winner_message)
+    #Don' t even bother with the embed, it can't be displayed on mobile
+    #embed = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
+    with open('comparison.txt', 'w+') as f:
+        f.write(nono_table)
+    with open('comparison.txt', 'r') as r:
+        compare_txt = discord.File(r)
+        await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
+        await ctx.channel.send(file=compare_txt)
+        await ctx.channel.send(winner_message)
         return
-    await ctx.channel.send(embed = embed)
-    # Send a winner message to sum it all up
-    await ctx.channel.send(winner_message)
+    # await ctx.channel.send(embed = embed)
+    # # Send a winner message to sum it all up
+    # await ctx.channel.send(winner_message)
 
 # A detailed explainer
 @bot.command()

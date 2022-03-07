@@ -558,17 +558,17 @@ async def compare(ctx, offender1 = None, offender2 = None):
         await ctx.channel.send(file=nono_gif) 
     #Don' t even bother with the embed, it can't be displayed on mobile
     #embed = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
-    with open('compare.txt', 'w+') as f:
+    with open('comparison.txt', 'w+') as f:
         f.write(nono_table)
-    with open('compare.txt', 'r') as r:
+    with open('comparison.txt', 'r') as r:
         compare_txt = discord.File(r)
         await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
         await ctx.channel.send(file=compare_txt)
         await ctx.channel.send(winner_message)
         return
-    await ctx.channel.send(embed = embed)
-    # Send a winner message to sum it all up
-    await ctx.channel.send(winner_message)
+    # await ctx.channel.send(embed = embed)
+    # # Send a winner message to sum it all up
+    # await ctx.channel.send(winner_message)
 
 # A detailed explainer
 @bot.command()
