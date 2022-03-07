@@ -49,11 +49,10 @@ async def load_message(message):
     if bot.user.id == message.author.id:
         return
     #strip out punctutation
-    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
+    message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ' or c == '\n')
     message_list = message_string.lower().split()
     # Count nono words in messages, add to server and member counts, save message with most nono words in it
     num_nono_words_in_message = 0
-    most_nono_words_in_message = 0
     for word in nono_list:
         word_count = message_list.count(word)
         if word_count > 0:
@@ -348,11 +347,15 @@ async def list(ctx, offender=None):
         await ctx.channel.send(file=nono_gif) 
     # print nono table here
     embed = discord.Embed(title = nono_prefix(ctx, offender), description = code_block(nono_table))
-    # If embed is too large (max is 6000 char), print outside of one
-    if len(embed) > 5900 or len(code_block(nono_table) > 4095):
+    # If embed is too large (max is 6000 char), write to text file and send to channel
+    if len(embed) > 5999 or len(code_block(nono_table)) > 4095:
         print("Embed too large at " + str(len(embed)))
-        await ctx.channel.send(nono_prefix(ctx, offender))
-        await ctx.channel.send(code_block(nono_table))
+        with open('list.txt', 'w') as f:
+            f.write(nono_table)
+        with open('list.txt', 'r') as r:
+            list_txt = discord.File(r)
+            await ctx.channel.send(nono_prefix(ctx, offender))
+            await ctx.channel.send(file=list_txt) 
         return
     await ctx.channel.send(embed = embed)
 
@@ -399,7 +402,7 @@ async def worst(ctx, offender=None):
     message_word_list = message.content.split()
     highlighted_message = "> "
     for word in message_word_list:
-        clean_word = ''.join(c for c in word if c.isalpha() or c == ' ').lower()
+        clean_word = ''.join(c for c in word if c.isalpha() or c == ' ' or c == '\n').lower()
         if clean_word in nono_set:
             highlighted_message += " " + bold(word)
         else:
@@ -411,9 +414,15 @@ async def worst(ctx, offender=None):
     description = highlighted_message + "\n" + suffix + "\n" + postfix
     embed = discord.Embed(title = prefix, description = description)
     if len(embed) > 5999 or len(description) > 4095:
-        print("Embed too large at " + str(len(embed)))
-        await ctx.channel.send(bold(prefix))
-        await ctx.channel.send(description)
+        print("Embed too large at " + str(len(embed)))  
+        with open('worst.txt', 'w+') as f:
+            f.write(message.content)
+        with open('worst.txt', 'r') as r:
+            worst_txt = discord.File(r)
+            await ctx.channel.send(bold(prefix))
+            await ctx.channel.send(file=worst_txt)
+            suffix_embed = discord.Embed(description="\n" + suffix + "\n" + postfix)
+            await ctx.channel.send(embed=suffix_embed)
         return
     await ctx.channel.send(embed = embed)
 
@@ -536,9 +545,13 @@ async def compare(ctx, offender1 = None, offender2 = None):
     embed = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
     if len(embed) > 5999 or len(code_block(nono_table)) > 4095:
         print("Embed too large at " + str(len(embed)))
-        await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
-        await ctx.channel.send(code_block(nono_table))
-        await ctx.channel.send(winner_message)
+        with open('compare.txt', 'w+') as f:
+            f.write(nono_table)
+        with open('compare.txt', 'r') as r:
+            compare_txt = discord.File(r)
+            await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
+            await ctx.channel.send(file=compare_txt)
+            await ctx.channel.send(winner_message)
         return
     await ctx.channel.send(embed = embed)
     # Send a winner message to sum it all up
@@ -602,8 +615,8 @@ async def on_message(message): #called when bot has recieves a message
     if message.author == bot.user:
         return
 
-    message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ').lower()
-    print('message: ' + message.content)
+    message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ' or c == '\n').lower()
+    print('message: ' + message_string_clean)
     message_word_list = message.content.split()
     author = get_name(message.author)
     
@@ -612,7 +625,7 @@ async def on_message(message): #called when bot has recieves a message
         highlighted_message = "> "
         if ultimate_nono_word in message_string_clean.split() or (ultimate_nono_word + 's') in message_string_clean.split():
             for word in message_word_list:
-                clean_word = ''.join(c for c in word if c.isalpha() or c == ' ').lower()
+                clean_word = ''.join(c for c in word if c.isalpha() or c == ' ' or c == '\n').lower()
                 if clean_word == ultimate_nono_word or clean_word == (ultimate_nono_word + 's'):
                     highlighted_message += " " + bold(word)
                 else:
