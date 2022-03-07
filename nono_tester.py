@@ -520,8 +520,8 @@ async def explain(ctx, command = None):
     logger.info(ctx.author.name + " used the help command.")
     print(ctx.author.name + " asked for help.")
     if command == None:
-        explainer_string = discord.Embed(title = 'Please specify the command you want explained.', description = '\nMy commands are ' + bold("list") + ', ' + bold("compare") + ', and ' + bold("worst")\
-            + '.\nMy command prefix is ' + bold("~") + ' (tilde)' + '\nType '+ bold("~explain <command>") + ' for more information.')
+        explainer_string = discord.Embed(title = 'Please specify the command you want explained.', description = '\nMy commands are: ' + code_block("list, compare, and worst")\
+            + '\nMy command prefix is ' + bold("~") + ' (tilde)' + '. Type: '+ code_block("~explain <command>") + ' for more information.')
         await ctx.channel.send(embed=explainer_string)
         return
     explainer_string = ''
@@ -592,8 +592,6 @@ async def on_message(message): #called when bot has recieves a message
                 await message.channel.send(file=nono_gif) 
             await message.channel.send(author + ' said:\n' + highlighted_message)
             await message.channel.send(embed = ultimate_nono_dict[ultimate_nono_word])
-
-    # Add message nono_words to dicts
     
     # Respond to mentions of bot
     if str(bot.user.id) in message.content:
@@ -602,8 +600,8 @@ async def on_message(message): #called when bot has recieves a message
             print(message_string_clean)
             logger.info(author + " asked for help.")
             print(author + " asked for help.")
-            greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = '\nMy commands are ' + bold("list") + ', ' + bold("compare") + ', and ' + bold("worst")\
-            + '.\nMy command prefix is ' + bold("~") +' (tilde)' + '\nType '+ bold("~explain <command>") + ' for more information.')
+            greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = '\nMy commands are: ' + code_block("list, compare, and worst")\
+            + '\nMy command prefix is ' + bold("~") + ' (tilde)' + '. Type: '+ code_block("~explain <command>") + ' for more information.')
             await message.channel.send(embed=greeting_string)
         #greetings
         elif is_greeting(message_string_clean):
