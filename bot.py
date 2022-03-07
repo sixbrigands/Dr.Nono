@@ -150,7 +150,6 @@ async def on_guild_join(guild):
     print("I joined the " + guild.name)
     await load_server(guild)
 
-
 # When Channel permissions change, and the bot is added, load that channel
 # Before = the channel previously, and After = current channel
 @bot.event
@@ -158,6 +157,13 @@ async def on_guild_channel_update(before, after):
     if bot.user not in before.members and bot.user in after.members:
         print("Dr. NoNo has joined a new channel, " + after.name)
         await load_channel(after)
+
+#TODO Fill this is for role updates that give access to new channels
+# Before = the member object before, and After = current memeber object
+async def on_member_update(before, after):
+    # Bail out if this isn't the bot
+    if before.id != bot.user.id:
+        return
 
 
 #get author's real name, or Discord handle otherwise
