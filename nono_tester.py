@@ -393,14 +393,22 @@ async def compare(ctx, offender1 = None, offender2 = None):
     print(offender1)
     print(offender2)
     # What if user doesn't provide any args?
-    if offender1 == -1:
+    if offender1 == None:
         await ctx.channel.send('Please specify at least one member. Type "~help compare" for details.')
+        return
+    # Comparing to a user to themselves is pointless
+    if offender1 == offender2:
+        await ctx.channel.send('Please provide at least 2 different members for comparison.')
         return
     if str(bot.user.id) in str(offender1) or str(bot.user.id) in str(offender2):
         await ctx.channel.send('Dr. NoNo is incomparable.')
         return
     # if only one user is provided, the other is the author
     elif offender2 == None:
+        # Comparing to a user to themselves is pointless
+        if str(ctx.author.id) in str(offender1):
+            await ctx.channel.send('Please provide at least 2 different members for comparison.')
+            return
         offender2 = ctx.guild.get_member(get_user_id_from_mention(offender1))
         offender1 = ctx.author
     # Otherwise just try and get both provided offenders
