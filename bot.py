@@ -184,7 +184,7 @@ def code_block(string):
 def hyperlink(string, link):
     return "[" + string + "](" + link + ")"
 def trophy(string):
-    return '🏆 ' + string + ' 🏆'
+    return '🏆' + string + '🏆'
 def number_one(string):
     return '#1 ' + string + ' #1'
 
@@ -521,9 +521,9 @@ async def compare(ctx, offender1 = None, offender2 = None):
     #Craft a winner message:
     winner_message = ''
     if offender1_total > offender2_total and offender1_vocab > offender2_vocab:
-        winner_message = bold(get_name(offender1)) + " claimed victory in both total NoNo totals and variety."
+        winner_message = trophy(bold(get_name(offender1))) + " claimed victory in both total NoNo totals and variety."
     elif offender1_total < offender2_total and offender1_vocab < offender2_vocab:
-        winner_message = bold(get_name(offender2)) + " claimed victory in both total NoNo totals and variety."
+        winner_message = trophy(bold(get_name(offender2))) + " claimed victory in both total NoNo totals and variety."
     elif offender1_total > offender2_total and offender1_vocab < offender2_vocab:
         winner_message = bold(get_name(offender1)) + " said more NoNo words, but " + bold(get_name(offender2)) + " has a larger NoNo vocabulary."
     elif offender1_total < offender2_total and offender1_vocab > offender2_vocab:
@@ -535,9 +535,9 @@ async def compare(ctx, offender1 = None, offender2 = None):
     elif offender1_total == offender2_total and offender1_vocab < offender2_vocab:
         winner_message = "The total NoNos are tied, but " + bold(get_name(offender2)) + " has a larger NoNo vocabulary."
     elif offender1_total > offender2_total and offender1_vocab == offender2_vocab:
-        winner_message = bold(get_name(offender1)) + " is the winner! However, they are equally matched in NoNo vocabulary."
+        winner_message = trophy(bold(get_name(offender1))) + " is the winner! However, they are equally matched in NoNo vocabulary."
     elif offender1_total < offender2_total and offender1_vocab == offender2_vocab:
-        winner_message = bold(get_name(offender2)) + " is the winner! However, they are equally matched in NoNo vocabulary."
+        winner_message = trophy(bold(get_name(offender2))) + " is the winner! However, they are equally matched in NoNo vocabulary."
     # Send picture and nono_word table to channel
     with open('private/compare.gif', 'rb') as f:
         nono_gif = discord.File(f)
