@@ -501,7 +501,7 @@ async def compare(ctx, offender1 = None, offender2 = None):
         winner_message = bold(get_name(offender1)) + " is the winner! However, they are equally matched in NoNo vocabulary."
     elif offender1_total < offender2_total and offender1_vocab == offender2_vocab:
         winner_message = bold(get_name(offender2)) + " is the winner! However, they are equally matched in NoNo vocabulary."
-    "
+    
     # Send picture and nono_word table to channel
     with open('private/compare.gif', 'rb') as f:
         nono_gif = discord.File(f)
@@ -509,6 +509,7 @@ async def compare(ctx, offender1 = None, offender2 = None):
     nono_string = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
     # Send a winner message to sum it all up
+    await ctx.channel.send(winner_message)
     
 
 # Is a user message a greeting?
