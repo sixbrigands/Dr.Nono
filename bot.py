@@ -575,8 +575,8 @@ async def explain(ctx, command = None):
         explainer_string  = discord.Embed(title = "~compare", description = "Compare two user's NoNo words. "\
     + "\nTo compare yourself to another user, type: ```~compare @username```To compare two other users, type: ```~list @username @another_username```")
     elif "worst" in command: 
-        explainer_string  = discord.Embed(title = "~worst", description = "I hold onto the filthiest messages posted here. "\
-    + "\nTo see your own worst message, type: ```~worst```To see someone else's, type: ```~worst @username```To see the very worst message posted on this server, type:```~worst all```")
+        explainer_string  = discord.Embed(title = "~worst", description = "I have preserved the filthiest messages posted on this server. "\
+    + "\nTo see your own worst message, type: ```~worst```To see someone else's, type: ```~worst @username```To see the worst message posted by anyone, type:```~worst all```")
     else:
         await ctx.channel.send("I don't recognize that command, " + get_name(ctx.author) + ". Try again.")
         return
