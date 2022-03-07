@@ -501,7 +501,6 @@ async def compare(ctx, offender1 = None, offender2 = None):
         winner_message = bold(get_name(offender1)) + " is the winner! However, they are equally matched in NoNo vocabulary."
     elif offender1_total < offender2_total and offender1_vocab == offender2_vocab:
         winner_message = bold(get_name(offender2)) + " is the winner! However, they are equally matched in NoNo vocabulary."
-    
     # Send picture and nono_word table to channel
     with open('private/compare.gif', 'rb') as f:
         nono_gif = discord.File(f)
@@ -510,7 +509,31 @@ async def compare(ctx, offender1 = None, offender2 = None):
     await ctx.channel.send(embed = nono_string)
     # Send a winner message to sum it all up
     await ctx.channel.send(winner_message)
-    
+
+# A detailed explainer
+@bot.command()
+async def explain(ctx, command = None):
+    logger.info(ctx.author.name + " used the help command.")
+    print(ctx.author.name + " asked for help.")
+    if command == None:
+        explainer_string = discord.Embed(title = 'Please specify the command you want explained.', description = '\nMy commands are ' + bold("list") + ', ' + bold("compare") + ', and ' + bold("worst")\
+            + '.\nMy command prefix is ' + bold("~") + ' (tilde)' + '\nType '+ bold("~explain <command>") + ' for more information.')
+        await ctx.channel.send(embed=explainer_string)
+        return
+    explainer_string = ''
+    if "list" in command: 
+        explainer_string  = discord.Embed(title = "~list", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
+    + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```To see results for the whole server, type:```~list all```")
+    elif "compare" in command: 
+        explainer_string  = discord.Embed(title = "~compare", description = "Compare two user's NoNo words. "\
+    + "\nTo compare yourself to another user, type: ```~compare @username```To compare two other users, type: ```~list @username @another_username```")
+    elif "worst" in command: 
+        explainer_string  = discord.Embed(title = "~worst", description = "I hold onto the filthiest messages posted here. "\
+    + "\nTo see your own worst message, type: ```~worst```To see someone else's, type: ```~worst @username```To see the very worst message posted on this server, type:```~worst all```")
+    else:
+        await ctx.channel.send("I don't recognize that command, " + get_name(ctx.author) + ". Try again.")
+        return
+    await ctx.channel.send(embed=explainer_string)
 
 # Is a user message a greeting?
 def is_greeting(message_string):
@@ -575,8 +598,8 @@ async def on_message(message): #called when bot has recieves a message
             print(message_string_clean)
             logger.info(author + " asked for help.")
             print(author + " asked for help.")
-            greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = "I have compiled a list of all the shocking obscenities you've uttered here. "\
-            + "\nTo see your own list, type: ```~list```To see someone else's, type: ```~list @username```")
+            greeting_string = discord.Embed(title = "Greetings, I am Dr. NoNo", description = '\nMy commands are ' + bold("list") + ', ' + bold("compare") + ', and ' + bold("worst")\
+            + '.\nMy command prefix is ' + bold("~") +' (tilde)' + '\nType '+ bold("~explain <command>") + ' for more information.')
             await message.channel.send(embed=greeting_string)
         #greetings
         elif is_greeting(message_string_clean):
