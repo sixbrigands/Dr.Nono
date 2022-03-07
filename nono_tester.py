@@ -342,6 +342,7 @@ async def worst(ctx, offender=None):
     entire_server = False
     message = ''
     prefix = ''
+    num_nonos = 0
     if offender == None:
         offender = ctx.author
     elif bot.user.id == get_user_id_from_mention(offender):
@@ -366,12 +367,14 @@ async def worst(ctx, offender=None):
             return
         message = superlatives_by_server[ctx.guild.id]['filthiest_message']
         prefix = 'Worst message posted on ' + ctx.guild.name + ':\n'
+        num_nonos = superlatives_by_server[ctx.guild.id]['filthiest_message_count']
     else:
         if offender.id not in superlatives_by_member[ctx.guild.id]:
             await ctx.channel.send("I can't believe it. " + bold(get_name(offender)) +" has never said a NoNo word!")
             return
         message = superlatives_by_member[offender.guild.id][offender.id]['filthiest_message']
         prefix = get_name(offender) + "'s worst message:\n"
+        num_nonos = superlatives_by_member[ctx.guild.id][offender.id]['filthiest_message_count']
     #message_string = ''.join(c for c in message.content if c.isalpha() or c == ' ')
     message_word_list = message.content.split()
     highlighted_message = "> "
@@ -384,7 +387,8 @@ async def worst(ctx, offender=None):
 
     suffix = "~" + get_name(message.author) + ", " + message.created_at.strftime("%d%b%Y").upper()
     suffix = hyperlink(suffix, message.jump_url)
-    embed = discord.Embed(title = prefix, description = highlighted_message + "\n" + suffix)
+    postfix = str(num_nonos) + " NoNos"
+    embed = discord.Embed(title = prefix, description = highlighted_message + "\n" + suffix + "\n" + postfix)
     await ctx.channel.send(embed = embed)
 
 # Show the worst message a user has posted, in terms of nono words
@@ -631,4 +635,4 @@ with open("private/secret.json", "r") as file:
 # Start the bot
 bot.run(TOKEN)
 
-#TODO: Help command, swap test for list, clean up
+#TODO: swap test for list, clean up
