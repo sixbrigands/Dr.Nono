@@ -389,10 +389,15 @@ async def worst(ctx, offender=None):
 
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
-async def compare(ctx, offender1 = -1, offender2 = None):
+async def compare(ctx, offender1 = None, offender2 = None):
+    print(offender1)
+    print(offender2)
     # What if user doesn't provide any args?
     if offender1 == -1:
         await ctx.channel.send('Please specify at least one member. Type "~help compare" for details.')
+        return
+    if str(bot.user.id) in str(offender1) or str(bot.user.id) in str(offender2):
+        await ctx.channel.send('Dr. NoNo is incomparable.')
         return
     # if only one user is provided, the other is the author
     elif offender2 == None:
@@ -433,6 +438,36 @@ async def compare(ctx, offender1 = -1, offender2 = None):
         return
 
     for word in nono_list:
+        offender1_dict = nono_dict_by_member[ctx.guild.id][offender1.id]
+        offender2_dict = nono_dict_by_member[ctx.guild.id][offender2.id]
+        offender1_total = superlatives_by_member[ctx.guild.id][offender1.id]['total_nono_words']
+        offender2_total = superlatives_by_member[ctx.guild.id][offender2.id]['total_nono_words']
+        table_body_list = []
+        if word in offender1_dict or word in offender2_dict:
+            word_count_1 = 0
+            word_count_2 = 0
+            winner = 'Tie'
+            if word in offender1_dict:
+                word_count_1 = offender1_dict[word].count
+            if word in offender2_dict:
+                word_count_2 = offender2_dict[word].count
+            if word_count_1 > word_count_2:
+                winner = get_name(offender1)
+            elif word_count_2 > word_count_1:
+                winner = get_name(offender2)
+            table_body_list.append([word, word_count_1, word_count_2, winner])
+        overall_winner = 'Tie'
+        if offender1_total > offender2_total:
+            overall_winner = get_name(offender1)
+        elif offender2_total > offender1_total:
+            overall_winner = get_name(offender2)
+        footer = ["Totals:", offender1_total, offender2_total, overall_winner]
+        nono_table = t2a(
+                header=["NoNo_Word", get_name(offender1), get_name(offender2), "Winner"],
+                body=table_body_list,
+                footer = footer,
+                style = PresetStyle.thin_thick
+                ) 
 
 
     
