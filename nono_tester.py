@@ -433,31 +433,36 @@ async def compare(ctx, offender1 = None, offender2 = None):
             logger.debug(offender1)
             await ctx.channel.send("I couldn't find the second user, " + get_name(ctx.author) + ", try again.")
             return  
-
     # Check if either offender has no nono words:
     if offender1.id not in nono_dict_by_member[ctx.guild.id] and offender2.id not in nono_dict_by_member[ctx.guild.id]:
         await ctx.channel.send("Both users have never said a NoNo word! It's a tie!")
         return
     elif offender1.id not in nono_dict_by_member[ctx.guild.id]:
-        await ctx.channel.send(get_name(offender1) + " has never said a NoNo word! " + get_name(offender2) + "wins by default.")
+        await ctx.channel.send(bold(get_name(offender1)) + " has never said a NoNo word! " + bold(get_name(offender2)) + " wins by default.")
         return
     elif offender2.id not in nono_dict_by_member[ctx.guild.id]:
-        await ctx.channel.send(get_name(offender2) + " has never said a NoNo word! " + get_name(offender1) + "wins by default.")
+        await ctx.channel.send(bold(get_name(offender2)) + " has never said a NoNo word! " + bold(get_name(offender1)) + " wins by default.")
         return
 
+    # Build a comparison table
     offender1_dict = nono_dict_by_member[ctx.guild.id][offender1.id]
     offender2_dict = nono_dict_by_member[ctx.guild.id][offender2.id]
     offender1_total = superlatives_by_member[ctx.guild.id][offender1.id]['total_nono_words']
     offender2_total = superlatives_by_member[ctx.guild.id][offender2.id]['total_nono_words']
     table_body_list = []
+    # Keep track of the variety of offender nono words
+    offender1_vocab = 0
+    offender2_vocab = 0
     for word in nono_list:
         if word in offender1_dict or word in offender2_dict:
             word_count_1 = 0
             word_count_2 = 0
             winner = 'Tie'
             if word in offender1_dict:
+                offender1_vocab += 1
                 word_count_1 = offender1_dict[word].count
             if word in offender2_dict:
+                offender2_vocab += 1
                 word_count_2 = offender2_dict[word].count
             if word_count_1 > word_count_2:
                 winner = get_name(offender1)
@@ -475,20 +480,36 @@ async def compare(ctx, offender1 = None, offender2 = None):
             body=table_body_list,
             footer = footer,
             style = PresetStyle.thin_thick
-            ) 
-
-
-    
-    
-    
-    
+            )
+    #Craft a winner message:
+    winner_message = ''
+    if offender1_total > offender2_total and offender1_vocab > offender2_vocab:
+        winner_message = bold(get_name(offender1)) + " claimed victory in both total NoNo totals and variety."
+    elif offender1_total < offender2_total and offender1_vocab < offender2_vocab:
+        winner_message = bold(get_name(offender2)) + " claimed victory in both total NoNo totals and variety."
+    elif offender1_total > offender2_total and offender1_vocab < offender2_vocab:
+        winner_message = bold(get_name(offender1)) + " said more NoNo words, but " + bold(get_name(offender2)) + " has a larger NoNo vocabulary."
+    elif offender1_total < offender2_total and offender1_vocab > offender2_vocab:
+        winner_message = bold(get_name(offender2)) + " said more NoNo words, but " + bold(get_name(offender1)) + " has a larger NoNo vocabulary."
+    elif offender1_total == offender2_total and offender1_vocab == offender2_vocab:
+        winner_message = "Astonishing! It's a perfect tie!"
+    elif offender1_total == offender2_total and offender1_vocab > offender2_vocab:
+        winner_message = "The total NoNos are tied, but " + bold(get_name(offender1)) + " has a larger NoNo vocabulary."
+    elif offender1_total == offender2_total and offender1_vocab < offender2_vocab:
+        winner_message = "The total NoNos are tied, but " + bold(get_name(offender2)) + " has a larger NoNo vocabulary."
+    elif offender1_total > offender2_total and offender1_vocab == offender2_vocab:
+        winner_message = bold(get_name(offender1)) + " is the winner! However, they are equally matched in NoNo vocabulary."
+    elif offender1_total < offender2_total and offender1_vocab == offender2_vocab:
+        winner_message = bold(get_name(offender2)) + " is the winner! However, they are equally matched in NoNo vocabulary."
+    "
     # Send picture and nono_word table to channel
     with open('private/compare.gif', 'rb') as f:
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
-
     nono_string = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
     await ctx.channel.send(embed = nono_string)
+    # Send a winner message to sum it all up
+    
 
 # Is a user message a greeting?
 def is_greeting(message_string):
