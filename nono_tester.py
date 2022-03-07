@@ -347,14 +347,17 @@ async def list(ctx, offender=None):
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
     # print nono table here
-    nono_string = discord.Embed(title = nono_prefix(ctx, offender), description = code_block(nono_table))
-    # If embed is too large (max is 6000 char), print outside of one
-    if len(nono_string) > 5900:
-        print("Embed too large at " + str(len(nono_string)))
+    embed = discord.Embed(title = nono_prefix(ctx, offender), description = code_block(nono_table))
+    # If embed is too large (max is 6000 char), write to text file and send to channel
+    if len(embed) > 5999 or len(code_block(nono_table) > 4095):
+        print("Embed too large at " + str(len(embed)))
+        with open('list.txt', 'w+') as f:
+            f.write(nono_table)
+            list_txt = discord.File(f)
         await ctx.channel.send(nono_prefix(ctx, offender))
-        await ctx.channel.send(code_block(nono_table))
+        await ctx.channel.send(file=list_txt) 
         return
-    await ctx.channel.send(embed = nono_string)
+    await ctx.channel.send(embed = embed)
 
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
@@ -410,10 +413,13 @@ async def worst(ctx, offender=None):
     postfix = str(num_nonos) + " NoNos"
     description = highlighted_message + "\n" + suffix + "\n" + postfix
     embed = discord.Embed(title = prefix, description = description)
-    if len(embed) > 5900:
-        print("Embed too large at " + str(len(embed)))
+    if len(embed) > 5999 or len(description) > 4095:
+        print("Embed too large at " + str(len(embed)))  
+        with open('worst.txt', 'w+') as f:
+            f.write(message.content)
+            worst_txt = discord.File(f)
         await ctx.channel.send(bold(prefix))
-        await ctx.channel.send(description)
+        await ctx.channel.send(file=worst_txt)
         return
     await ctx.channel.send(embed = embed)
 
@@ -534,10 +540,13 @@ async def compare(ctx, offender1 = None, offender2 = None):
         nono_gif = discord.File(f)
         await ctx.channel.send(file=nono_gif) 
     embed = discord.Embed(title = nono_prefix(ctx, offender1, offender2), description = code_block(nono_table))
-    if len(embed) > 5900:
+    if len(embed) > 5999 or len(code_block(nono_table)) > 4095:
         print("Embed too large at " + str(len(embed)))
+        with open('compare.txt', 'w+') as f:
+            f.write(nono_table)
+            compare_txt = discord.File(f)
         await ctx.channel.send(nono_prefix(ctx, offender1, offender2))
-        await ctx.channel.send(code_block(nono_table))
+        await ctx.channel.send(file=compare_txt)
         await ctx.channel.send(winner_message)
         return
     await ctx.channel.send(embed = embed)
