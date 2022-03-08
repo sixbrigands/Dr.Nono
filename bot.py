@@ -370,10 +370,10 @@ async def list(ctx, offender=None):
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
 async def worst(ctx, offender=None):
-    if ctx.guild.id == 850831490794389532:
-        print("Worst in not allowed on this server")
-        await ctx.channel.send("Apologies, ~worst is not allowed on this server.")
-        return
+    # if ctx.guild.id == 850831490794389532:
+    #     print("Worst in not allowed on this server")
+    #     await ctx.channel.send("Apologies, ~worst is not allowed on this server.")
+    #     return
     entire_server = False
     message = ''
     prefix = ''
@@ -424,6 +424,8 @@ async def worst(ctx, offender=None):
     suffix = hyperlink(suffix, message.jump_url)
     postfix = str(num_nonos) + " NoNos"
     description = highlighted_message + "\n" + suffix + "\n" + postfix
+    if ctx.guild.id == 850831490794389532:
+        description = ''
     embed = discord.Embed(title = prefix, description = description)
     if len(embed) > 5999 or len(description) > 4095:
         print("Embed too large at " + str(len(embed)))  
@@ -432,7 +434,8 @@ async def worst(ctx, offender=None):
         with open('worst.txt', 'r') as r:
             worst_txt = discord.File(r)
             await ctx.channel.send(bold(prefix))
-            await ctx.channel.send(file=worst_txt)
+            if ctx.guild.id != 850831490794389532:
+                await ctx.channel.send(file=worst_txt)
             suffix_embed = discord.Embed(description="\n" + suffix + "\n" + postfix)
             await ctx.channel.send(embed=suffix_embed)
         return
