@@ -425,7 +425,7 @@ async def worst(ctx, offender=None):
     postfix = str(num_nonos) + " NoNos"
     description = highlighted_message + "\n" + suffix + "\n" + postfix
     if ctx.guild.id == 850831490794389532:
-        description = ''
+        description = suffix + "\n" + postfix
     embed = discord.Embed(title = prefix, description = description)
     if len(embed) > 5999 or len(description) > 4095:
         print("Embed too large at " + str(len(embed)))  
