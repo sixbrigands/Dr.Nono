@@ -638,7 +638,7 @@ async def on_message(message): #called when bot has recieves a message
     message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ' or c == '\n').lower()
     message_word_list = message.content.split()
     author = get_name(message.author)
-    print('message in ' + message.channel.name + " from " + author + ": " + message.content)
+    #print('message in ' + message.channel.name + " from " + author + ": " + message.content)
     
     # Call out those especially dirty NoNo words on sight
     for ultimate_nono_word in ultimate_nono_dict.keys():
