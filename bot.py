@@ -370,6 +370,10 @@ async def list(ctx, offender=None):
 # Show the worst message a user has posted, in terms of nono words
 @bot.command()
 async def worst(ctx, offender=None):
+    if ctx.guild.id == 850831490794389532:
+        print("Worst in not allowed on this server")
+        await ctx.channel.send("Apologies, ~worst is not allowed on this server.")
+        return
     entire_server = False
     message = ''
     prefix = ''
@@ -629,9 +633,9 @@ async def on_message(message): #called when bot has recieves a message
         return
 
     message_string_clean = ''.join(c for c in message.content if c.isalpha() or c == ' ' or c == '\n').lower()
-    print('message: ' + message_string_clean)
     message_word_list = message.content.split()
     author = get_name(message.author)
+    print('message in ' + message.channel.name + " from " + author + ": " + message.content)
     
     # Call out those especially dirty NoNo words on sight
     for ultimate_nono_word in ultimate_nono_dict.keys():
